@@ -1,10 +1,5 @@
 description: >
-  This job is executed and blocks further execution until the necessary criteria is met.
-
-docker:
-  - image: cimg/base:stable
-resource_class: small
-
+  This command is executed and blocks further execution until the necessary criteria is met.
 parameters:
   debug:
     type: boolean
@@ -33,12 +28,7 @@ parameters:
     type: env_var_name
     default: CIRCLECI_USER_AUTH
     description: "In the event you wish to supply CCI basic-auth credentials via a different environment value, set the name here."
-
 steps:
-  - queue:
-      debug: << parameters.debug >>
-      time: <<parameters.time>>
-      dont-quit: <<parameters.dont-quit>>
-      only-on-branch: <<parameters.only-on-branch>>
-      confidence: <<parameters.confidence>>
-      circleci-user-auth: <<parameters.circleci-user-auth>>
+- run:
+      name: Queue Until Front of Line
+      command: <<include(scripts/queue.sh)>>
