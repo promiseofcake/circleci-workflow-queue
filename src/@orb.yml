@@ -1,7 +1,10 @@
 version: 2.1
 
 description: >
-  Orb to isolate workflows for single execution
+  Allows jobs or entire workflows to be queued to ensure they run in serial.
+  This is ideal for deployments or other activities that must not run concurrently.
+  May optionaly consider branch-level isolation if unique branches should run concurrently.
+  This orb requires the project to have an CircleCI API key in order to query build states.
 display:
   home_url: "https://github.com/promiseofcake/circleci-workflow-queue"
   source_url: "https://github.com/promiseofcake/circleci-workflow-queue"
