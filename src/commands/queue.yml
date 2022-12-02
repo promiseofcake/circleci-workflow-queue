@@ -1,9 +1,10 @@
 description: >
   This command is executed and blocks further execution until the necessary criteria is met.
+
 parameters:
   debug:
     type: boolean
-    default: false
+    default: true
     description: "If enabled, DEBUG messages will be logged."
   time:
     type: string
