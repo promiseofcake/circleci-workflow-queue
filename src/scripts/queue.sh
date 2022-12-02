@@ -12,12 +12,12 @@ workflows_file="${tmp}/workflow_status.json"
 
 load_variables(){
     # just confirm our required variables are present
-    : ${CIRCLE_BUILD_NUM:?"Required Env Variable not found!"}
-    : ${CIRCLE_WORKFLOW_ID:?"Required Env Variable not found!"}
-    : ${CIRCLE_PROJECT_USERNAME:?"Required Env Variable not found!"}
-    : ${CIRCLE_PROJECT_REPONAME:?"Required Env Variable not found!"}
-    : ${CIRCLE_REPOSITORY_URL:?"Required Env Variable not found!"}
-    : ${CIRCLE_JOB:?"Required Env Variable not found!"}
+    : "${CIRCLE_BUILD_NUM:?"Required Env Variable not found!"}"
+    : "${CIRCLE_WORKFLOW_ID:?"Required Env Variable not found!"}"
+    : "${CIRCLE_PROJECT_USERNAME:?"Required Env Variable not found!"}"
+    : "${CIRCLE_PROJECT_REPONAME:?"Required Env Variable not found!"}"
+    : "${CIRCLE_REPOSITORY_URL:?"Required Env Variable not found!"}"
+    : "${CIRCLE_JOB:?"Required Env Variable not found!"}"
     # Only needed for private projects
     if [ -z "${CIRCLECI_USER_AUTH}" ]; then
         echo "CIRCLECI_USER_AUTH not set. Private projects will be inaccessible."
@@ -34,40 +34,40 @@ fetch(){
     target=$2
     debug "API CALL ${url}"
     http_response=$(curl -s -X GET -H "Authorization: Basic ${CIRCLECI_USER_AUTH}" -H "Content-Type: application/json" -o "${target}" -w "%{http_code}" "${url}")
-    if [ $http_response != "200" ]; then
+    if [ "${http_response}" != "200" ]; then
         echo "ERROR: Server returned error code: $http_response"
-        cat ${target}
-        # exit 1
+        debug "${target}"
+        exit 1
     else
         debug "API Success"
     fi
 }
 
 fetch_pipelines(){
-    : ${CIRCLE_BRANCH:?"Required Env Variable not found!"}
+    : "${CIRCLE_BRANCH:?"Required Env Variable not found!"}"
     echo "Only blocking execution if running previous workflows on branch: ${CIRCLE_BRANCH}"
     pipelines_api_url_template="https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline?branch=${CIRCLE_BRANCH}"
 
     debug "DEBUG Attempting to access CircleCI API. If the build process fails after this step, ensure your CIRCLECI_USER_AUTH  is set."
-    fetch "$pipelines_api_url_template" "${pipeline_file}"
+    fetch "${pipelines_api_url_template}" "${pipeline_file}"
     echo "DEBUG API access successful"
 }
 
 fetch_pipeline_workflows(){
-    for pipeline in `jq -r ".items[] | .id //empty" ${pipeline_file} | uniq`
+    for pipeline in $(jq -r ".items[] | .id //empty" ${pipeline_file} | uniq)
     do
         debug "Checking time of pipeline: ${pipeline}"
         pipeline_detail=${tmp}/pipeline-${pipeline}.json
         fetch "https://circleci.com/api/v2/pipeline/${pipeline}/workflow" "${pipeline_detail}"
-        created_at=`jq -r '.items[] | .created_at' ${pipeline_detail}`
+        created_at=$(jq -r '.items[] | .created_at' "${pipeline_detail}")
         debug "Pipeline was created at: ${created_at}"
     done
     jq -s '[.[].items[]]' ${tmp}/pipeline-*.json > ${workflows_file}
 }
 
 load_current_workflow_values(){
-    my_commit_time=`jq '.[] | select (.pipeline_number == ${CIRCLE_BUILD_NUM}).created_at' ${workflows_file}`
-    my_workflow_id`jq '.[] | select (.pipeline_number == ${CIRCLE_BUILD_NUM}).id' ${workflows_file}`
+    my_commit_time=$(jq '.[] | select (.pipeline_number == ${CIRCLE_BUILD_NUM}).created_at' ${workflows_file})
+    my_workflow_id=$(jq '.[] | select (.pipeline_number == ${CIRCLE_BUILD_NUM}).id' ${workflows_file})
 }
 
 update_comparables(){
@@ -78,9 +78,9 @@ update_comparables(){
     load_current_workflow_values
 
     echo "This job will block until no previous workflows have *any* workflows running."
-    oldest_running_workflow_id=`jq '. | sort_by(.created_at) | .[0].id' ${workflows_file}`
-    oldest_commit_time=`jq '. | sort_by(.created_at) | .[0].created_at' ${workflows_file}`
-    if [ -z "${oldest_commit_time}" || -z "${oldest_running_workflow_id}" ]; then
+    oldest_running_workflow_id=$(jq '. | sort_by(.created_at) | .[0].id' ${workflows_file})
+    oldest_commit_time=$(jq '. | sort_by(.created_at) | .[0].created_at' ${workflows_file})
+    if [ -z "${oldest_commit_time}" ] || [ -z "${oldest_running_workflow_id}" ]; then
         echo "ERROR: API Error - unable to load previous workflow timings. File a bug"
         exit 1
     fi
@@ -91,7 +91,7 @@ update_comparables(){
 cancel_current_workflow(){
     echo "Cancelleing workflow ${my_workflow_id}"
     cancel_api_url_template="https://circleci.com/api/v2/workflow/${my_workflow_id}"
-    curl -s -X POST -H "Authorization: Basic ${CIRCLECI_USER_AUTH}" -H "Content-Type: application/json" $cancel_api_url_template > /dev/null
+    curl -s -X POST -H "Authorization: Basic ${CIRCLECI_USER_AUTH}" -H "Content-Type: application/json" "${cancel_api_url_template}" > /dev/null
 }
 
 if [ "${CONFIG_ONLY_ON_BRANCH}" = "*" ] || [ "${CONFIG_ONLY_ON_BRANCH}" = "${CIRCLE_BRANCH}" ]; then
@@ -114,12 +114,12 @@ max_time_seconds=$((max_time * 60))
 confidence=0
 while true; do
     update_comparables
-    echo "This Workflow Timestamp: $my_commit_time"
-    echo "Oldest Workflow Timestamp: $oldest_commit_time"
-    if [[ ! -z "$my_commit_time" ]] && [[ "$oldest_commit_time" > "$my_commit_time" || "$oldest_commit_time" = "$my_commit_time" ]] ; then
+    echo "This Workflow Timestamp: ${my_commit_time}"
+    echo "Oldest Workflow Timestamp: ${oldest_commit_time}"
+    if [[ -n "${my_commit_time}" ]] && [[ "${oldest_commit_time}" > "${my_commit_time}" || "${oldest_commit_time}" = "${my_commit_time}" ]] ; then
     # API returns Y-M-D HH:MM (with 24 hour clock) so alphabetical string compare is accurate to timestamp compare as well
     # Workflow API does not include pending, so it is posisble we queried in between a workfow transition, and we;re NOT really front of line.
-    if [ $confidence -lt ${CONFIG_CONFIDENCE} ];then
+    if [ $confidence -lt "${CONFIG_CONFIDENCE}" ];then
         # To grow confidence, we check again with a delay.
         confidence=$((confidence+1))
         echo "API shows no previous workflows, but it is possible a previous workflow has pending jobs not yet visible in API."
