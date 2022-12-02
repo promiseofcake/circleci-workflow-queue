@@ -32,4 +32,6 @@ parameters:
 steps:
 - run:
       name: Queue Until Front of Line
+      environment:
+        DEBUG_ENABLED: "<< parameters.debug >>"
       command: <<include(scripts/queue.sh)>>
