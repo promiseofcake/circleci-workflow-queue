@@ -25,13 +25,13 @@ parameters:
       Due to concurrency issues, how many times should we requery the pipeline list to ensure previous jobs are "pending",
       but not yet active. This number indicates the threshold for API returning no previous pending pipelines.
       Default is one confirmation, increase if you see issues.
-  circleci-user-auth:
-    type: env_var_name
-    default: CIRCLECI_USER_AUTH
-    description: "In the event you wish to supply CCI basic-auth credentials via a different environment value, set the name here."
 steps:
 - run:
       name: Queue Until Front of Line
       environment:
-        DEBUG_ENABLED: "<< parameters.debug >>"
+        CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
+        CONFIG_TIME: "<< parameters.time >>"
+        CONFIG_DONT_QUIT: "<< parameters.dont-quit >>"
+        CONFIG_ONLY_ON_BRANCH: "<< parameters.only-on-branch >>"
+        CONFIG_CONFIDENCE: "<< parameters.confidence >>"
       command: <<include(scripts/queue.sh)>>
