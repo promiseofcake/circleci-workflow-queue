@@ -1,0 +1,37 @@
+description: >
+  This command is executed and blocks further execution until the necessary criteria is met.
+
+parameters:
+  debug:
+    type: boolean
+    default: true
+    description: "If enabled, DEBUG messages will be logged."
+  time:
+    type: string
+    default: "10"
+    description: "Minutes to wait before giving up."
+  dont-quit:
+    type: boolean
+    default: false
+    description: "Force job through once time expires instead of failing."
+  only-on-branch:
+    type: string
+    default: "*"
+    description: "Only queue on specified branch"
+  confidence:
+    type: string
+    default: "1"
+    description: >
+      Due to concurrency issues, how many times should we requery the pipeline list to ensure previous jobs are "pending",
+      but not yet active. This number indicates the threshold for API returning no previous pending pipelines.
+      Default is one confirmation, increase if you see issues.
+  circleci-user-auth:
+    type: env_var_name
+    default: CIRCLECI_USER_AUTH
+    description: "In the event you wish to supply CCI basic-auth credentials via a different environment value, set the name here."
+steps:
+- run:
+      name: Queue Until Front of Line
+      environment:
+        DEBUG_ENABLED: "<< parameters.debug >>"
+      command: <<include(scripts/queue.sh)>>
