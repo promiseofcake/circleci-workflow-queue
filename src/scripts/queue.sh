@@ -1,7 +1,7 @@
 #!/bin/bash
 
 debug() {
-    if ["<< parameters.debug >>" == "true"]; then
+    if [ "<< parameters.debug >>" == "true" ]; then
         echo "DEBUG: ${@}"
     fi
 }
