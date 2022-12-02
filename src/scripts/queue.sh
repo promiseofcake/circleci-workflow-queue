@@ -1,8 +1,10 @@
 #!/bin/bash
 
+DEBUG_ENABLED="<< parameters.debug >>"
+
 debug() {
-    if [ "<< parameters.debug >>" == "true" ]; then
-        echo "DEBUG: ${@}"
+    if [ "${DEBUG_ENABLED}" == "true" ]; then
+        echo "DEBUG: ${*}"
     fi
 }
 
