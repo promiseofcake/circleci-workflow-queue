@@ -23,7 +23,7 @@ workflows:
           pub-type: production
           requires:
             - orb-tools/pack
-            - command-tests
+            - workflow-queue/queue
           context: orb-publishing
           filters:
             branches:
