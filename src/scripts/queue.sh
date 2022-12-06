@@ -66,8 +66,8 @@ fetch_pipeline_workflows(){
 }
 
 load_current_workflow_values(){
-    my_commit_time=$(jq '.[] | select (.pipeline_number == ${CIRCLE_BUILD_NUM}).created_at' ${workflows_file})
-    my_workflow_id=$(jq '.[] | select (.pipeline_number == ${CIRCLE_BUILD_NUM}).id' ${workflows_file})
+    my_commit_time=$(jq ".[] | select (.pipeline_number == ${CIRCLE_BUILD_NUM}).created_at" ${workflows_file})
+    my_workflow_id=$(jq ".[] | select (.pipeline_number == ${CIRCLE_BUILD_NUM}).id" ${workflows_file})
 }
 
 update_comparables(){
