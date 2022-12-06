@@ -1,7 +1,7 @@
 #!/bin/bash
 
 debug() {
-    if [ -n "${DEBUG_ENABLED}" ]; then
+    if [ -n "${CONFIG_DEBUG_ENABLED}" ]; then
         echo "DEBUG: ${*}"
     fi
 }
