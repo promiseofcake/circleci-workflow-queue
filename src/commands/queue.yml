@@ -25,8 +25,9 @@ parameters:
       Due to concurrency issues, how many times should we requery the pipeline list to ensure previous jobs are "pending",
       but not yet active. This number indicates the threshold for API returning no previous pending pipelines.
       Default is one confirmation, increase if you see issues.
+
 steps:
-- run:
+  - run:
       name: Queue Until Front of Line
       environment:
         CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
