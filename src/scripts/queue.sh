@@ -67,8 +67,8 @@ fetch_pipeline_workflows(){
 
 # CIRCLE_BUILD_NUM is going to be for job, not for pipeline
 load_current_workflow_values(){
-    my_commit_time=$(jq ".[] | select (.id == ${CIRCLE_WORKFLOW_ID}).created_at" ${workflows_file})
-    my_workflow_id=$(jq ".[] | select (.id == ${CIRCLE_WORKFLOW_ID}).id" ${workflows_file})
+    my_commit_time=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" ${workflows_file})
+    my_workflow_id=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" ${workflows_file})
 }
 
 update_comparables(){
