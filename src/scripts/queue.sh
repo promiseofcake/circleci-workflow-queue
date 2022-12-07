@@ -12,7 +12,6 @@ workflows_file="${tmp}/workflow_status.json"
 
 load_variables(){
     # just confirm our required variables are present
-    : "${CIRCLE_BUILD_NUM:?"Required Env Variable not found!"}"
     : "${CIRCLE_WORKFLOW_ID:?"Required Env Variable not found!"}"
     : "${CIRCLE_PROJECT_USERNAME:?"Required Env Variable not found!"}"
     : "${CIRCLE_PROJECT_REPONAME:?"Required Env Variable not found!"}"
@@ -62,12 +61,14 @@ fetch_pipeline_workflows(){
         created_at=$(jq -r '.items[] | .created_at' "${pipeline_detail}")
         debug "Pipeline was created at: ${created_at}"
     done
-    jq -s '[.[].items[]]' ${tmp}/pipeline-*.json > ${workflows_file}
+    jq -s '[.[].items[] | select((.status == "running") or (.status == "created"))]' ${tmp}/pipeline-*.json > ${workflows_file}
+
 }
 
+# CIRCLE_BUILD_NUM is going to be for job, not for pipeline
 load_current_workflow_values(){
-    my_commit_time=$(jq ".[] | select (.pipeline_number == ${CIRCLE_BUILD_NUM}).created_at" ${workflows_file})
-    my_workflow_id=$(jq ".[] | select (.pipeline_number == ${CIRCLE_BUILD_NUM}).id" ${workflows_file})
+    my_commit_time=$(jq ".[] | select (.id == ${CIRCLE_WORKFLOW_ID}).created_at" ${workflows_file})
+    my_workflow_id=$(jq ".[] | select (.id == ${CIRCLE_WORKFLOW_ID}).id" ${workflows_file})
 }
 
 update_comparables(){
@@ -76,6 +77,11 @@ update_comparables(){
     fetch_pipeline_workflows
 
     load_current_workflow_values
+
+    # need to only get the workflows which are created or running
+
+    # need to pull out the workflows that are failed, and stuff, we need to only look for running ones
+    # also need to make sure that job # and pipeline # are interchangable
 
     echo "This job will block until no previous workflows have *any* workflows running."
     oldest_running_workflow_id=$(jq '. | sort_by(.created_at) | .[0].id' ${workflows_file})
@@ -131,7 +137,7 @@ while true; do
     else
         # If we fail, reset confidence
         confidence=0
-        echo "This build (${CIRCLE_BUILD_NUM}) is queued, waiting for workflow (${oldest_running_workflow_id}) to complete."
+        echo "This build (${CIRCLE_WORKFLOW_ID}) is queued, waiting for workflow (${oldest_running_workflow_id}) to complete."
         echo "Total Queue time: ${wait_time} seconds."
     fi
 
