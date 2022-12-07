@@ -13,7 +13,6 @@ workflows:
       # Make sure to include "filters: *filters" in every test job you want to run as part of your deployment.
       - workflow-queue/queue:
           filters: *filters
-          debug: true
           context: orb-publishing
       - orb-tools/pack:
           filters: *filters
