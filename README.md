@@ -1,8 +1,17 @@
 # circleci-workflow-queue
 
-
 [![CircleCI Build Status](https://circleci.com/gh/promiseofcake/circleci-workflow-queue.svg?style=shield "CircleCI Build Status")](https://circleci.com/gh/promiseofcake/circleci-workflow-queue) [![CircleCI Orb Version](https://badges.circleci.com/orbs/promiseofcake/workflow-queue.svg)](https://circleci.com/orbs/registry/orb/promiseofcake/workflow-queue) [![GitHub License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://raw.githubusercontent.com/promiseofcake/circleci-workflow-queue/master/LICENSE) [![CircleCI Community](https://img.shields.io/badge/community-CircleCI%20Discuss-343434.svg)](https://discuss.circleci.com/c/ecosystem/orbs)
 
+
+## Introduction
+
+Forked from https://github.com/eddiewebb/circleci-queue and updated to reduce the use-cases, and migrate to the CircleCI V2 API
+
+The purpose of this Orb is to add a concept of a queue to specific branch workflow tasks in CircleCi. The main use-cases is to isolate a set of changes to ensure that one set of a thing is running at one time. Think of smoke-tests against a nonproduction environment.
+
+## Configuration Requirements
+
+In order to use this orb you will need to export a CIRCLECI_USER_AUTH secret added to a context of your choosing. The token is generated and stored as a Basic Auth of a Circle Token (see: https://support.circleci.com/hc/en-us/articles/360052405651-Utilizing-Basic-Authorization-in-CircleCI-API-Calls)
 
 ---
 

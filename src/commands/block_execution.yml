@@ -28,7 +28,7 @@ parameters:
 
 steps:
   - run:
-      name: Queue Until Front of Line
+      name: Block execution until workflow is at the front of the line
       environment:
         CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
         CONFIG_TIME: "<< parameters.time >>"
