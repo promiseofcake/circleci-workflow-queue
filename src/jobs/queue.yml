@@ -31,7 +31,7 @@ parameters:
       Default is one confirmation, increase if you see issues.
 
 steps:
-  - queue:
+  - block_execution:
       debug: << parameters.debug >>
       time: <<parameters.time>>
       dont-quit: <<parameters.dont-quit>>

@@ -11,11 +11,12 @@ workflows:
   test-deploy:
     jobs:
       # Make sure to include "filters: *filters" in every test job you want to run as part of your deployment.
+      - orb-tools/pack:
+          filters: *filters
       - workflow-queue/queue:
           filters: *filters
           context: orb-publishing
-      - orb-tools/pack:
-          filters: *filters
+          requires: [orb-tools/pack]
       - orb-tools/publish:
           orb-name: promiseofcake/workflow-queue
           vcs-type: << pipeline.project.type >>
