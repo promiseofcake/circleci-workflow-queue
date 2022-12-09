@@ -4,7 +4,7 @@ description: >
 parameters:
   debug:
     type: boolean
-    default: true
+    default: false
     description: "If enabled, DEBUG messages will be logged."
   time:
     type: string

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 debug() {
-    if [ -n "${CONFIG_DEBUG_ENABLED}" ]; then
+    if [ "${CONFIG_DEBUG_ENABLED}" == "1" ]; then
         echo "DEBUG: ${*}"
     fi
 }
@@ -47,25 +47,22 @@ fetch_pipelines(){
     echo "Only blocking execution if running previous workflows on branch: ${CIRCLE_BRANCH}"
     pipelines_api_url_template="https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline?branch=${CIRCLE_BRANCH}"
 
-    debug "DEBUG Attempting to access CircleCI API. If the build process fails after this step, ensure your CIRCLECI_USER_AUTH  is set."
+    debug "Fetching piplines: ${pipelines_api_url_template} > ${pipeline_file}"
     fetch "${pipelines_api_url_template}" "${pipeline_file}"
-    echo "DEBUG API access successful"
 }
 
 fetch_pipeline_workflows(){
     for pipeline in $(jq -r ".items[] | .id //empty" ${pipeline_file} | uniq)
     do
-        debug "Checking time of pipeline: ${pipeline}"
+        debug "Fetching workflow information for pipeline: ${pipeline}"
         pipeline_detail=${tmp}/pipeline-${pipeline}.json
         fetch "https://circleci.com/api/v2/pipeline/${pipeline}/workflow" "${pipeline_detail}"
         created_at=$(jq -r '.items[] | .created_at' "${pipeline_detail}")
-        debug "Pipeline was created at: ${created_at}"
+        debug "Pipeline's workflow was created at: ${created_at}"
     done
     jq -s '[.[].items[] | select((.status == "running") or (.status == "created"))]' ${tmp}/pipeline-*.json > ${workflows_file}
-
 }
 
-# CIRCLE_BUILD_NUM is going to be for job, not for pipeline
 load_current_workflow_values(){
     my_commit_time=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" ${workflows_file})
     my_workflow_id=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" ${workflows_file})
@@ -77,11 +74,6 @@ update_comparables(){
     fetch_pipeline_workflows
 
     load_current_workflow_values
-
-    # need to only get the workflows which are created or running
-
-    # need to pull out the workflows that are failed, and stuff, we need to only look for running ones
-    # also need to make sure that job # and pipeline # are interchangable
 
     echo "This job will block until no previous workflows have *any* workflows running."
     oldest_running_workflow_id=$(jq '. | sort_by(.created_at) | .[0].id' ${workflows_file})
