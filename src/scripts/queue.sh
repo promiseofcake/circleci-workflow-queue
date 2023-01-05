@@ -1,15 +1,17 @@
 #!/bin/bash
 
+tmp="/tmp"
+pipeline_file="${tmp}/pipeline_status.json"
+workflows_file="${tmp}/workflow_status.json"
+
+# logger command for debugging
 debug() {
     if [ "${CONFIG_DEBUG_ENABLED}" == "1" ]; then
         echo "DEBUG: ${*}"
     fi
 }
 
-tmp="/tmp"
-pipeline_file="${tmp}/pipeline_status.json"
-workflows_file="${tmp}/workflow_status.json"
-
+# ensure we have the required variables present to execute
 load_variables(){
     # just confirm our required variables are present
     : "${CIRCLE_WORKFLOW_ID:?"Required Env Variable not found!"}"
@@ -18,8 +20,8 @@ load_variables(){
     : "${CIRCLE_REPOSITORY_URL:?"Required Env Variable not found!"}"
     : "${CIRCLE_JOB:?"Required Env Variable not found!"}"
     # Only needed for private projects
-    if [ -z "${CIRCLECI_USER_AUTH}" ]; then
-        echo "CIRCLECI_USER_AUTH not set. Private projects will be inaccessible."
+    if [ -z "${CIRCLECI_TOKEN}" ]; then
+        echo "CIRCLECI_TOKEN not set. Private projects will be inaccessible."
     else
         fetch "https://circleci.com/api/v2/me" "/tmp/me.cci"
         me=$(jq -e '.id' /tmp/me.cci)
@@ -27,14 +29,16 @@ load_variables(){
     fi
 }
 
+# helper function to perform HTTP requests via curl
 fetch(){
-    debug "Making API Call to ${1}"
     url=$1
     target=$2
-    debug "API CALL ${url}"
-    http_response=$(curl -s -X GET -H "Authorization: Basic ${CIRCLECI_USER_AUTH}" -H "Content-Type: application/json" -o "${target}" -w "%{http_code}" "${url}")
+    method=${3:-GET}
+    debug "Performing API ${method} Call to ${url} to ${target}"
+
+    http_response=$(curl -s -X "${method}" -H "Circle-Token: ${CIRCLECI_TOKEN}" -H "Content-Type: application/json" -o "${target}" -w "%{http_code}" "${url}")
     if [ "${http_response}" != "200" ]; then
-        echo "ERROR: Server returned error code: $http_response"
+        echo "ERROR: Server returned error code: ${http_response}"
         debug "${target}"
         exit 1
     else
@@ -42,6 +46,7 @@ fetch(){
     fi
 }
 
+# fetch all current pipelines for a given branch
 fetch_pipelines(){
     : "${CIRCLE_BRANCH:?"Required Env Variable not found!"}"
     echo "Only blocking execution if running previous workflows on branch: ${CIRCLE_BRANCH}"
@@ -51,6 +56,7 @@ fetch_pipelines(){
     fetch "${pipelines_api_url_template}" "${pipeline_file}"
 }
 
+# fetch all running or created workflows for a given pipeline
 fetch_pipeline_workflows(){
     for pipeline in $(jq -r ".items[] | .id //empty" ${pipeline_file} | uniq)
     do
@@ -63,11 +69,13 @@ fetch_pipeline_workflows(){
     jq -s '[.[].items[] | select((.status == "running") or (.status == "created"))]' ${tmp}/pipeline-*.json > ${workflows_file}
 }
 
+# parse workflows to fetch parmeters about this current running workflow
 load_current_workflow_values(){
     my_commit_time=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" ${workflows_file})
     my_workflow_id=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" ${workflows_file})
 }
 
+# load all the data necessary to compare build executions
 update_comparables(){
     fetch_pipelines
 
@@ -86,12 +94,15 @@ update_comparables(){
     debug "Oldest workflow: ${oldest_running_workflow_id}"
 }
 
+# will perform a cancel request for the workflow in question
 cancel_current_workflow(){
     echo "Cancelleing workflow ${my_workflow_id}"
-    cancel_api_url_template="https://circleci.com/api/v2/workflow/${my_workflow_id}"
-    curl -s -X POST -H "Authorization: Basic ${CIRCLECI_USER_AUTH}" -H "Content-Type: application/json" "${cancel_api_url_template}" > /dev/null
+    fetch "https://circleci.com/api/v2/workflow/${my_workflow_id}" "${tmp}/cancel-workflow-${my_workflow_id}.out" "POST"
 }
 
+
+# main execution
+# set values that wont change while we wait
 if [ "${CONFIG_ONLY_ON_BRANCH}" = "*" ] || [ "${CONFIG_ONLY_ON_BRANCH}" = "${CIRCLE_BRANCH}" ]; then
     echo "${CIRCLE_BRANCH} queueable"
 else
@@ -99,7 +110,6 @@ else
     exit 0
 fi
 
-### Set values that wont change while we wait
 load_variables
 max_time=${CONFIG_TIME}
 echo "This build will block until all previous builds complete."
@@ -108,7 +118,7 @@ wait_time=0
 loop_time=11
 max_time_seconds=$((max_time * 60))
 
-### Queue Loop
+# queue loop
 confidence=0
 while true; do
     update_comparables
