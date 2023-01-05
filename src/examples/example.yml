@@ -1,13 +1,14 @@
 description: >
-  Sample example description.
-# Provide a use-case based example for using this orb.
-# Everything in the `usage` section will be displayed in the orb registry.
-# Comments are not retained.
+  Use when you want to block a workflow progression until there is only one running.
 usage:
   version: 2.1
   orbs:
-    <orb-name>: <namespace>/<orb-name>@1.2.3
+    workflow-queue: promiseofcake/workflow-queue@1
   workflows:
-    use-my-orb:
+    example:
       jobs:
-        - <orb-name>/<job-name>
+        - workflow-queue/queue:
+          name: workflow-queue
+          context: <context-key>
+          circleci-api-key: <CIRCLECI_API_TOKEN>
+          only-on-branch: main
