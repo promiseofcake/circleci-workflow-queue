@@ -10,5 +10,4 @@ usage:
         - workflow-queue/queue:
             name: workflow-queue
             context: <context-key>
-            circleci-api-key: <CIRCLECI_API_TOKEN>
             only-on-branch: main

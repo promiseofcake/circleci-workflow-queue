@@ -20,8 +20,8 @@ load_variables(){
     : "${CIRCLE_REPOSITORY_URL:?"Required Env Variable not found!"}"
     : "${CIRCLE_JOB:?"Required Env Variable not found!"}"
     # Only needed for private projects
-    if [ -z "${CIRCLECI_TOKEN}" ]; then
-        echo "CIRCLECI_TOKEN not set. Private projects will be inaccessible."
+    if [ -z "${CIRCLECI_API_TOKEN}" ]; then
+        echo "CIRCLECI_API_TOKEN not set. Private projects will be inaccessible."
     else
         fetch "https://circleci.com/api/v2/me" "/tmp/me.cci"
         me=$(jq -e '.id' /tmp/me.cci)
@@ -36,7 +36,7 @@ fetch(){
     method=${3:-GET}
     debug "Performing API ${method} Call to ${url} to ${target}"
 
-    http_response=$(curl -s -X "${method}" -H "Circle-Token: ${CIRCLECI_TOKEN}" -H "Content-Type: application/json" -o "${target}" -w "%{http_code}" "${url}")
+    http_response=$(curl -s -X "${method}" -H "Circle-Token: ${CIRCLECI_API_TOKEN}" -H "Content-Type: application/json" -o "${target}" -w "%{http_code}" "${url}")
     if [ "${http_response}" != "200" ]; then
         echo "ERROR: Server returned error code: ${http_response}"
         debug "${target}"
