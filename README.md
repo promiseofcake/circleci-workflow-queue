@@ -11,7 +11,7 @@ The purpose of this Orb is to add a concept of a queue to specific branch workfl
 
 ## Configuration Requirements
 
-In order to use this orb you will need to export a `CIRCLECI_TOKEN` secret added to a context of your choosing. It will authentcation against the CircleCI API to check on workflow status. (see: https://circleci.com/docs/api/v2/index.html#section/Authentication)
+In order to use this orb you will need to export a `CIRCLECI_API_TOKEN` secret added to a context of your choosing. It will authentcation against the CircleCI API to check on workflow status. (see: https://circleci.com/docs/api/v2/index.html#section/Authentication)
 
 ---
 
