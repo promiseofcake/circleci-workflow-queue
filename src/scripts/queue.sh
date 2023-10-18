@@ -66,7 +66,12 @@ fetch_pipeline_workflows(){
         created_at=$(jq -r '.items[] | .created_at' "${pipeline_detail}")
         debug "Pipeline's workflow was created at: ${created_at}"
     done
-    jq -s '[.[].items[] | select((.status == "running") or (.status == "created"))]' ${tmp}/pipeline-*.json > ${workflows_file}
+    if [ "${CONFIG_INCLUDE_ON_HOLD}" == "1" ]; then
+        active_statuses='["running","created","on_hold"]'
+    else
+        active_statuses='["running","created"]'
+    fi
+    jq -s '[.[].items[] | select([.status] | inside('${active_statuses}'))]' ${tmp}/pipeline-*.json > ${workflows_file}
 }
 
 # parse workflows to fetch parmeters about this current running workflow
