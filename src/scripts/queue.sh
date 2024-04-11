@@ -65,6 +65,8 @@ fetch_pipeline_workflows(){
         fetch "https://circleci.com/api/v2/pipeline/${pipeline}/workflow" "${pipeline_detail}"
         created_at=$(jq -r '.items[] | .created_at' "${pipeline_detail}")
         debug "Pipeline's workflow was created at: ${created_at}"
+        details=$(jq -r '.' "${pipeline_detail}")
+        debug "Pipeline details: ${details}"
     done
     jq -s '[.[].items[] | select((.status == "running") or (.status == "created"))]' ${tmp}/pipeline-*.json > ${workflows_file}
 }
