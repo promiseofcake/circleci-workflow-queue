@@ -71,6 +71,18 @@ fetch_pipeline_workflows(){
     jq -s '[.[].items[] | select((.status == "running") or (.status == "created"))]' ${tmp}/pipeline-*.json > ${workflows_file}
 }
 
+fetch_workflow_jobs(){
+    for workflow in $(jq -r ".items[] | .id //empty" ${workflows_file} | uniq)
+    do
+        debug "Fetching job information for workflow: ${workflow}"
+        workflow_detail=${tmp}/workflow-${workflow}.json
+        fetch "https://circleci.com/api/v2/pipeline/${pipeline}/workflow/job" "${workflow_detail}"
+        job_details=$(jq -r '.' "${workflow_detail}")
+        debug "Workflow details: ${job_details}"
+    done
+    # jq -s '[.[].items[] | select((.status == "running") or (.status == "created"))]' ${tmp}/pipeline-*.json > ${workflows_file}
+}
+
 # parse workflows to fetch parmeters about this current running workflow
 load_current_workflow_values(){
     my_commit_time=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" ${workflows_file})
@@ -82,6 +94,8 @@ update_comparables(){
     fetch_pipelines
 
     fetch_pipeline_workflows
+
+    fetch_workflow_jobs
 
     load_current_workflow_values
 
