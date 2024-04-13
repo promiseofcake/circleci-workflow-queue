@@ -1,5 +1,9 @@
 description: >
-  This command blocks execution of parallel pipeline workflows until necessary criteria is met.
+  This job prevents a workflow within a given pipeline from running until all previous workflows have completed.
+
+docker:
+  - image: cimg/base:stable
+resource_class: small
 
 parameters:
   debug:
@@ -15,9 +19,6 @@ parameters:
       Default is one confirmation, increase if you see issues.
 
 steps:
-  - run:
-      name: Block additional pipeline work executions until all other workflows are complete
-      environment:
-        CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
-        CONFIG_CONFIDENCE: "<< parameters.confidence >>"
-      command: <<include(scripts/internal-queue.sh)>>
+  - pipeline_block:
+      debug: <<parameters.debug>>
+      confidence: <<parameters.confidence>>

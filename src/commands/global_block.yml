@@ -1,9 +1,5 @@
 description: >
-  This job ensures only a single global workflow is running at a point in time.
-
-docker:
-  - image: cimg/base:stable
-resource_class: small
+  This command is the execution portion to determine that only a single global workflow is running at a point in time.
 
 parameters:
   debug:
@@ -29,16 +25,24 @@ parameters:
       Due to concurrency issues, how many times should we requery the pipeline list to ensure previous jobs are "pending",
       but not yet active. This number indicates the threshold for API returning no previous pending pipelines.
       Default is one confirmation, increase if you see issues.
+  ignored-workflows:
+    type: string
+    default: ""
+    description: "Comma separated list of workflow names to ignore as blocking workflows."
   include-on-hold:
     type: boolean
     default: false
     description: Consider on-hold workflows waiting for approval as running and include them in the queue.
 
 steps:
-  - block_execution:
-      debug: << parameters.debug >>
-      time: <<parameters.time>>
-      dont-quit: <<parameters.dont-quit>>
-      only-on-branch: <<parameters.only-on-branch>>
-      confidence: <<parameters.confidence>>
-      include-on-hold: <<parameters.include-on-hold>>
+  - run:
+      name: Block execution until the current workflow is at the front of the line
+      environment:
+        CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
+        CONFIG_TIME: "<< parameters.time >>"
+        CONFIG_DONT_QUIT: "<< parameters.dont-quit >>"
+        CONFIG_ONLY_ON_BRANCH: "<< parameters.only-on-branch >>"
+        CONFIG_CONFIDENCE: "<< parameters.confidence >>"
+        CONFIG_IGNORED_WORKFLOWS: " << parameters.ignored-workflows >>"
+        CONFIG_INCLUDE_ON_HOLD: " << parameters.include-on-hold >>"
+      command: <<include(scripts/global-queue.sh)>>
