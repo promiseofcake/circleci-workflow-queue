@@ -19,6 +19,6 @@ parameters:
       Default is one confirmation, increase if you see issues.
 
 steps:
-  - block_internal:
+  - pipeline_block:
       debug: <<parameters.debug>>
       confidence: <<parameters.confidence>>
