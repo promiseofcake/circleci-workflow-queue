@@ -1,0 +1,24 @@
+description: >
+  This job prevents a workflow within a given pipeline from running until all previous workflows have completed.
+
+docker:
+  - image: cimg/base:stable
+resource_class: small
+
+parameters:
+  debug:
+    type: boolean
+    default: false
+    description: "If enabled, DEBUG messages will be logged."
+  confidence:
+    type: string
+    default: "1"
+    description: >
+      Due to concurrency issues, how many times should we requery the pipeline list to ensure previous jobs are "pending",
+      but not yet active. This number indicates the threshold for API returning no previous pending pipelines.
+      Default is one confirmation, increase if you see issues.
+
+steps:
+  - block_internal:
+      debug: <<parameters.debug>>
+      confidence: <<parameters.confidence>>

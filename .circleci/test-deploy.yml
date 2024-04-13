@@ -8,23 +8,30 @@ filters: &filters
     only: /.*/
 
 workflows:
-  test-deploy:
+  test-internal-queue:
     jobs:
-      - orb-tools/pack:
-          filters: *filters
+      - workflow-queue/internal-queue:
+          filters:
+            tags:
+              ignore: /.*/
+          context: orb-publishing
+  test-queue:
+    jobs:
       - workflow-queue/queue:
           filters:
             tags:
               ignore: /.*/
           context: orb-publishing
-          requires: [orb-tools/pack]
+  test-deploy:
+    jobs:
+      - orb-tools/pack:
+          filters: *filters
       - orb-tools/publish:
           orb-name: promiseofcake/workflow-queue
           vcs-type: << pipeline.project.type >>
           pub-type: production
           requires:
             - orb-tools/pack
-            - workflow-queue/queue
           context: orb-publishing
           filters:
             branches:
