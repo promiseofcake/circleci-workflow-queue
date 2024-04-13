@@ -79,7 +79,7 @@ fetch_pipeline_workflows(){
         ignored_workflows=$(printf '"%s"' "${CONFIG_IGNORED_WORKFLOWS}" | jq 'split(",")')
     fi
 
-    jq -s "[.[].items[] | select(([.name] | inside(${ignored_workflows}) | not) and ([.status] | inside(${active_statuses})))]" "${tmp}/pipeline-*.json" > "${workflows_file}"
+    jq -s "[.[].items[] | select(([.name] | inside(${ignored_workflows}) | not) and ([.status] | inside(${active_statuses})))]" "${tmp}"/pipeline-*.json > "${workflows_file}"
 }
 
 # parse workflows to fetch parmeters about this current running workflow
