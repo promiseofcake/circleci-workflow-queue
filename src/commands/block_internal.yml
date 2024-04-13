@@ -1,0 +1,23 @@
+description: >
+  This command blocks execution of parallel pipeline workflows until necessary criteria is met.
+
+parameters:
+  debug:
+    type: boolean
+    default: false
+    description: "If enabled, DEBUG messages will be logged."
+  confidence:
+    type: string
+    default: "1"
+    description: >
+      Due to concurrency issues, how many times should we requery the pipeline list to ensure previous jobs are "pending",
+      but not yet active. This number indicates the threshold for API returning no previous pending pipelines.
+      Default is one confirmation, increase if you see issues.
+
+steps:
+  - run:
+      name: Block additional pipeline work executions until all other workflows are complete
+      environment:
+        CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
+        CONFIG_CONFIDENCE: "<< parameters.confidence >>"
+      command: <<include(scripts/internal-queue.sh)>>
