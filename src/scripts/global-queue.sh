@@ -57,7 +57,7 @@ fetch_pipelines(){
 
 # iterate over all pipelines, and fetch workflow information
 fetch_pipeline_workflows(){
-    for pipeline in $(jq -r ".items[] | .id //empty" ${pipelines_file} | uniq)
+    for pipeline in $(jq -r ".items[] | .id //empty" "${pipelines_file}" | uniq)
     do
         debug "Fetching workflow metadata for pipeline: ${pipeline}"
         pipeline_detail=${tmp}/pipeline-${pipeline}.json
@@ -79,13 +79,13 @@ fetch_pipeline_workflows(){
         ignored_workflows=$(printf '"%s"' "${CONFIG_IGNORED_WORKFLOWS}" | jq 'split(",")')
     fi
 
-    jq -s "[.[].items[] | select(([.name] | inside(${ignored_workflows}) | not) and ([.status] | inside(${active_statuses})))]" ${tmp}/pipeline-*.json > ${workflows_file}
+    jq -s "[.[].items[] | select(([.name] | inside(${ignored_workflows}) | not) and ([.status] | inside(${active_statuses})))]" "${tmp}/pipeline-*.json" > "${workflows_file}"
 }
 
 # parse workflows to fetch parmeters about this current running workflow
 load_current_workflow_values(){
-    my_commit_time=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" ${workflows_file})
-    my_workflow_id=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" ${workflows_file})
+    my_commit_time=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" "${workflows_file}")
+    my_workflow_id=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" "${workflows_file}")
 }
 
 # load all the data necessary to compare build executions
@@ -97,8 +97,8 @@ update_comparables(){
     load_current_workflow_values
 
     echo "This job will block until no previous workflows have *any* workflows running."
-    oldest_running_workflow_id=$(jq '. | sort_by(.created_at) | .[0].id' ${workflows_file})
-    oldest_commit_time=$(jq '. | sort_by(.created_at) | .[0].created_at' ${workflows_file})
+    oldest_running_workflow_id=$(jq '. | sort_by(.created_at) | .[0].id' "${workflows_file}")
+    oldest_commit_time=$(jq '. | sort_by(.created_at) | .[0].created_at' "${workflows_file}")
     if [ -z "${oldest_commit_time}" ] || [ -z "${oldest_running_workflow_id}" ]; then
         echo "ERROR: API Error - unable to load previous workflow timings. File a bug"
         exit 1
