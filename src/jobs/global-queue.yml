@@ -29,6 +29,10 @@ parameters:
       Due to concurrency issues, how many times should we requery the pipeline list to ensure previous jobs are "pending",
       but not yet active. This number indicates the threshold for API returning no previous pending pipelines.
       Default is 1 confirmation, increase if you see issues.
+  ignored-workflows:
+    type: string
+    default: ""
+    description: "Comma separated list of workflow names to ignore as blocking workflows."
   include-on-hold:
     type: boolean
     default: false
@@ -41,4 +45,5 @@ steps:
       dont-quit: <<parameters.dont-quit>>
       only-on-branch: <<parameters.only-on-branch>>
       confidence: <<parameters.confidence>>
+      ignored-workflows: <<parameters.ignored-workflows>>
       include-on-hold: <<parameters.include-on-hold>>
