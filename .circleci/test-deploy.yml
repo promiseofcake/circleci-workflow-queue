@@ -8,16 +8,16 @@ filters: &filters
     only: /.*/
 
 workflows:
-  test-internal-queue:
+  test-global-queue:
     jobs:
-      - workflow-queue/internal-queue:
+      - workflow-queue/global-queue:
           filters:
             tags:
               ignore: /.*/
           context: orb-publishing
-  test-queue:
+  test-pipeline-queue:
     jobs:
-      - workflow-queue/queue:
+      - workflow-queue/pipeline-queue:
           filters:
             tags:
               ignore: /.*/
