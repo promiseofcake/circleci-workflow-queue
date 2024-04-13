@@ -1,5 +1,5 @@
 description: >
-  This command is executed and blocks further execution until the necessary criteria is met.
+  This command is the execution portion to determine that only a single global workflow is running at a point in time.
 
 parameters:
   debug:
@@ -28,7 +28,7 @@ parameters:
 
 steps:
   - run:
-      name: Block execution until workflow is at the front of the line
+      name: Block execution until the current workflow is at the front of the line
       environment:
         CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
         CONFIG_TIME: "<< parameters.time >>"

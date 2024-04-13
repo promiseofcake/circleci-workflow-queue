@@ -1,5 +1,5 @@
 description: >
-  This job is executed and blocks further execution until the necessary criteria is met.
+  This job ensures only a single global workflow is running at a point in time.
 
 docker:
   - image: cimg/base:stable
