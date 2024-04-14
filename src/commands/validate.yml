@@ -1,0 +1,13 @@
+description: >
+  Internal: Command used to validate queue ordering, for now there are no parameters.
+
+parameters:
+  debug:
+    type: boolean
+    default: false
+    description: "If enabled, DEBUG messages will be logged."
+
+steps:
+  - run:
+      name: validate workflow
+      command: <<include(scripts/validate.sh)>>

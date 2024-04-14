@@ -7,32 +7,61 @@ filters: &filters
   tags:
     only: /.*/
 
+jobs:
+  sleep:
+    docker:
+      - image: cimg/base:edge
+    parameters:
+      time:
+        type: integer
+    steps:
+      - run: echo "sleeping << parameters.time >>s" &&  sleep << parameters.time >>
+  validate:
+    docker:
+      - image: cimg/base:edge
+    steps:
+      - workflow-queue/validate:
+          debug: true
+
 workflows:
+  test-pipeline-a:
+    jobs:
+      - workflow-queue/pipeline-queue:
+          context: orb-publishing
+          debug: true
+      - validate:
+          context: orb-publishing
+          requires:
+            - workflow-queue/pipeline-queue
+  test-pipeline-b:
+    jobs:
+      - sleep:
+          time: 5
+  test-pipeline-c:
+    jobs:
+      - sleep:
+          time: 20
+
   test-global-queue:
     jobs:
       - workflow-queue/global-queue:
+          context: orb-publishing
+          debug: true
+          ignored-workflows: "test-a,foo,bar" # given we are in one pipeline, don't block on ourselves
           filters:
             tags:
               ignore: /.*/
-          context: orb-publishing
-  test-pipeline-queue:
-    jobs:
-      - workflow-queue/pipeline-queue:
-          filters:
-            tags:
-              ignore: /.*/
-          context: orb-publishing
   test-deploy:
     jobs:
       - orb-tools/pack:
           filters: *filters
       - orb-tools/publish:
+          context: orb-publishing
           orb-name: promiseofcake/workflow-queue
           vcs-type: << pipeline.project.type >>
           pub-type: production
           requires:
             - orb-tools/pack
-          context: orb-publishing
           filters:
             branches:
               ignore: /.*/

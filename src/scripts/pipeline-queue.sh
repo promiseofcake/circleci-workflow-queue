@@ -1,6 +1,5 @@
 #!/bin/bash
 tmp=${TMP_DIR:-/tmp}
-tmp="/tmp"
 workflows_file="${tmp}/workflow_status.json"
 
 # logger command for debugging
@@ -21,8 +20,8 @@ load_variables(){
     if [ -z "${CIRCLECI_API_TOKEN}" ]; then
         echo "CIRCLECI_API_TOKEN not set. Private projects will be inaccessible."
     else
-        fetch "https://circleci.com/api/v2/me" "/tmp/me.cci"
-        me=$(jq -e '.id' /tmp/me.cci)
+        fetch "https://circleci.com/api/v2/me" "${tmp}/me.cci"
+        me=$(jq -e '.id' "${tmp}/me.cci")
         echo "Using API key for user: ${me}"
     fi
 }
@@ -51,14 +50,14 @@ fetch_pipeline_workflows(){
     fetch "https://circleci.com/api/v2/pipeline/${CIRCLE_PIPELINE_ID}/workflow" "${pipeline_detail}"
     debug "Pipeline's details: $(jq -r '.' "${pipeline_detail}")"
     # fetch all workflows that are not this workflow
-    jq -s "[.[].items[] | select((.id != \"${CIRCLE_WORKFLOW_ID}\") and ((.status == \"running\") or (.status == \"created\")))]" "${pipeline_detail}" > ${workflows_file}
+    jq -s "[.[].items[] | select((.id != \"${CIRCLE_WORKFLOW_ID}\") and ((.status == \"running\") or (.status == \"created\")))]" "${pipeline_detail}" > "${workflows_file}"
 }
 
 # load all the data necessary to compare build executions
 update_comparables(){
     fetch_pipeline_workflows
 
-    running_workflows=$(jq length ${workflows_file})
+    running_workflows=$(jq length "${workflows_file}")
     debug "Running workflows: ${running_workflows}"
 }
 
