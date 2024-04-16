@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2004
 
+if [ "${CONFIG_DEBUG_ENABLED}" == "1" ]; then
+    set -x
+fi
+
 tmp=${TMP_DIR:-/tmp}
 
 debug() {
