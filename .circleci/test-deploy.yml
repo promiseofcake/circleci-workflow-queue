@@ -47,7 +47,7 @@ workflows:
       - workflow-queue/global-queue:
           context: orb-publishing
           debug: true
-          ignored-workflows: "test-a,foo,bar" # given we are in one pipeline, don't block on ourselves
+          ignored-workflows: "test-pipeline-a" # given we are in one pipeline, don't block on ourselves
           filters:
             tags:
               ignore: /.*/
