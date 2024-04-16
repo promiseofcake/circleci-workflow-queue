@@ -73,11 +73,15 @@ fetch_pipeline_workflows(){
         active_statuses="$(printf '%s' '["running","created"]')"
     fi
 
+    debug "filtering on statuses: ${active_statuses}"
+
     # filter out any workflows that match the ignored list
     ignored_workflows="[]"
-    if [ -z "${CONFIG_IGNORED_WORKFLOWS}" ]; then
+    if [ -n "${CONFIG_IGNORED_WORKFLOWS}" ]; then
         ignored_workflows=$(printf '"%s"' "${CONFIG_IGNORED_WORKFLOWS}" | jq 'split(",")')
     fi
+
+    debug "ignoring workflows: ${ignored_workflows}"
 
     jq -s "[.[].items[] | select(([.name] | inside(${ignored_workflows}) | not) and ([.status] | inside(${active_statuses})))]" "${tmp}"/pipeline-*.json > "${workflows_file}"
 }
