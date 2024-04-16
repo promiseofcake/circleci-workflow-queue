@@ -1,0 +1,48 @@
+description: >
+  When used, this command blocks the assigned workflow from running until all previous (global) workflows have completed.
+  This ensures only one instance of a given workflow is running at a time across all defined branches.
+parameters:
+  debug:
+    type: boolean
+    default: false
+    description: "When enabled, additional debug logging with be output."
+  time:
+    type: string
+    default: "10"
+    description: "Number of minutes to wait for a lock before giving up."
+  dont-quit:
+    type: boolean
+    default: false
+    description: "If true, forces the job through once time expires instead of failing."
+  only-on-branch:
+    type: string
+    default: "*"
+    description: "Only queue on specified branch"
+  confidence:
+    type: string
+    default: "1"
+    description: >
+      Due to concurrency issues, the number of times should we requery the pipeline list to ensure previous jobs are "pending",
+      but not yet active. This number indicates the threshold for API returning no previous pending pipelines.
+      Default is `1` confirmation, increase if you see issues.
+  ignored-workflows:
+    type: string
+    default: ""
+    description: Comma separated list of workflow names to ignore as blocking workflows for the global queue.
+  include-on-hold:
+    type: boolean
+    default: false
+    description: Consider `on-hold` workflows waiting for approval as running and include them in the queue.
+
+steps:
+  - run:
+      name: Block execution until the current workflow is at the front of the line
+      environment:
+        CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
+        CONFIG_TIME: "<< parameters.time >>"
+        CONFIG_DONT_QUIT: "<< parameters.dont-quit >>"
+        CONFIG_ONLY_ON_BRANCH: "<< parameters.only-on-branch >>"
+        CONFIG_CONFIDENCE: "<< parameters.confidence >>"
+        CONFIG_IGNORED_WORKFLOWS: "<< parameters.ignored-workflows >>"
+        CONFIG_INCLUDE_ON_HOLD: " << parameters.include-on-hold >>"
+      command: <<include(scripts/global-queue.sh)>>

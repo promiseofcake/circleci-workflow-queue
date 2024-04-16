@@ -4,9 +4,11 @@
 
 ## Introduction
 
-Forked from <https://github.com/eddiewebb/circleci-queue> and updated to reduce the use-cases, and migrate to the CircleCI V2 API
+Originally forked from <https://github.com/eddiewebb/circleci-queue> and updated to reduce the use-cases, and migrate to the CircleCI V2 API
 
-The purpose of this Orb is to add a concept of a queue to specific branch workflow tasks in CircleCi. The main use-case is to isolate a set of changes to ensure that one set of a thing is running at one time. Think of smoke-tests against a nonproduction environment as a promotion gate.
+The purpose of this Orb is to add a concept of a queue to specific branch's workflow tasks in CircleCi. The main use-case is to isolate a set of changes to ensure that one set of a thing is running at one time. Think of smoke-tests against a nonproduction environment as a promotion gate.
+
+Additional use-cases are for queueing workflows within a given pipeline (a feature missing today from CircleCi).
 
 ## Configuration Requirements
 

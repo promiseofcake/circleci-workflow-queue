@@ -1,7 +1,6 @@
 #!/bin/bash
-
-tmp="/tmp"
-pipeline_file="${tmp}/pipeline_status.json"
+tmp=${TMP_DIR:-/tmp}
+pipelines_file="${tmp}/pipeline_status.json"
 workflows_file="${tmp}/workflow_status.json"
 
 # logger command for debugging
@@ -13,18 +12,18 @@ debug() {
 
 # ensure we have the required variables present to execute
 load_variables(){
-    # just confirm our required variables are present
     : "${CIRCLE_WORKFLOW_ID:?"Required Env Variable not found!"}"
     : "${CIRCLE_PROJECT_USERNAME:?"Required Env Variable not found!"}"
     : "${CIRCLE_PROJECT_REPONAME:?"Required Env Variable not found!"}"
     : "${CIRCLE_REPOSITORY_URL:?"Required Env Variable not found!"}"
     : "${CIRCLE_JOB:?"Required Env Variable not found!"}"
-    # Only needed for private projects
+
+    # required for private projects
     if [ -z "${CIRCLECI_API_TOKEN}" ]; then
         echo "CIRCLECI_API_TOKEN not set. Private projects will be inaccessible."
     else
-        fetch "https://circleci.com/api/v2/me" "/tmp/me.cci"
-        me=$(jq -e '.id' /tmp/me.cci)
+        fetch "https://circleci.com/api/v2/me" "${tmp}/me.cci"
+        me=$(jq -e '.id' "${tmp}/me.cci")
         echo "Using API key for user: ${me}"
     fi
 }
@@ -34,15 +33,15 @@ fetch(){
     url=$1
     target=$2
     method=${3:-GET}
-    debug "Performing API ${method} Call to ${url} to ${target}"
+    debug "api call: ${method} ${url} > ${target}"
 
     http_response=$(curl -s -X "${method}" -H "Circle-Token: ${CIRCLECI_API_TOKEN}" -H "Content-Type: application/json" -o "${target}" -w "%{http_code}" "${url}")
     if [ "${http_response}" != "200" ]; then
-        echo "ERROR: Server returned error code: ${http_response}"
+        echo "ERROR: api-call: server returned error code: ${http_response}"
         debug "${target}"
         exit 1
     else
-        debug "API Success"
+        debug "api call: success"
     fi
 }
 
@@ -52,32 +51,45 @@ fetch_pipelines(){
     echo "Only blocking execution if running previous workflows on branch: ${CIRCLE_BRANCH}"
     pipelines_api_url_template="https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline?branch=${CIRCLE_BRANCH}"
 
-    debug "Fetching piplines: ${pipelines_api_url_template} > ${pipeline_file}"
-    fetch "${pipelines_api_url_template}" "${pipeline_file}"
+    debug "Fetching piplines for: ${CIRCLE_BRANCH}"
+    fetch "${pipelines_api_url_template}" "${pipelines_file}"
 }
 
-# fetch all running or created workflows for a given pipeline
+# iterate over all pipelines, and fetch workflow information
 fetch_pipeline_workflows(){
-    for pipeline in $(jq -r ".items[] | .id //empty" ${pipeline_file} | uniq)
+    for pipeline in $(jq -r ".items[] | .id //empty" "${pipelines_file}" | uniq)
     do
-        debug "Fetching workflow information for pipeline: ${pipeline}"
+        debug "Fetching workflow metadata for pipeline: ${pipeline}"
         pipeline_detail=${tmp}/pipeline-${pipeline}.json
         fetch "https://circleci.com/api/v2/pipeline/${pipeline}/workflow" "${pipeline_detail}"
         created_at=$(jq -r '.items[] | .created_at' "${pipeline_detail}")
-        debug "Pipeline's workflow was created at: ${created_at}"
+        debug "Pipeline:'s workflow was created at: ${created_at}"
     done
+
+    # filter out any workflows that are not active
     if [ "${CONFIG_INCLUDE_ON_HOLD}" = "1" ]; then
         active_statuses="$(printf '%s' '["running","created","on_hold"]')"
     else
         active_statuses="$(printf '%s' '["running","created"]')"
     fi
-    jq -s "[.[].items[] | select([.status] | inside(${active_statuses}))]" ${tmp}/pipeline-*.json > ${workflows_file}
+
+    debug "filtering on statuses: ${active_statuses}"
+
+    # filter out any workflows that match the ignored list
+    ignored_workflows="[]"
+    if [ -n "${CONFIG_IGNORED_WORKFLOWS}" ]; then
+        ignored_workflows=$(printf '"%s"' "${CONFIG_IGNORED_WORKFLOWS}" | jq 'split(",")')
+    fi
+
+    debug "ignoring workflows: ${ignored_workflows}"
+
+    jq -s "[.[].items[] | select(([.name] | inside(${ignored_workflows}) | not) and ([.status] | inside(${active_statuses})))]" "${tmp}"/pipeline-*.json > "${workflows_file}"
 }
 
 # parse workflows to fetch parmeters about this current running workflow
 load_current_workflow_values(){
-    my_commit_time=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" ${workflows_file})
-    my_workflow_id=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" ${workflows_file})
+    my_commit_time=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" "${workflows_file}")
+    my_workflow_id=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" "${workflows_file}")
 }
 
 # load all the data necessary to compare build executions
@@ -89,8 +101,8 @@ update_comparables(){
     load_current_workflow_values
 
     echo "This job will block until no previous workflows have *any* workflows running."
-    oldest_running_workflow_id=$(jq '. | sort_by(.created_at) | .[0].id' ${workflows_file})
-    oldest_commit_time=$(jq '. | sort_by(.created_at) | .[0].created_at' ${workflows_file})
+    oldest_running_workflow_id=$(jq '. | sort_by(.created_at) | .[0].id' "${workflows_file}")
+    oldest_commit_time=$(jq '. | sort_by(.created_at) | .[0].created_at' "${workflows_file}")
     if [ -z "${oldest_commit_time}" ] || [ -z "${oldest_running_workflow_id}" ]; then
         echo "ERROR: API Error - unable to load previous workflow timings. File a bug"
         exit 1
