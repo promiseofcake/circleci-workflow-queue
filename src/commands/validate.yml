@@ -10,4 +10,6 @@ parameters:
 steps:
   - run:
       name: validate workflow
+      environment:
+        CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
       command: <<include(scripts/validate.sh)>>
