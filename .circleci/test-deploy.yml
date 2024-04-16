@@ -16,12 +16,6 @@ jobs:
         type: integer
     steps:
       - run: echo "sleeping << parameters.time >>s" &&  sleep << parameters.time >>
-  validate:
-    docker:
-      - image: cimg/base:edge
-    steps:
-      - workflow-queue/validate:
-          debug: true
 
 workflows:
   test-pipeline-a:
@@ -29,10 +23,6 @@ workflows:
       - workflow-queue/pipeline-queue:
           context: orb-publishing
           debug: true
-      - validate:
-          context: orb-publishing
-          requires:
-            - workflow-queue/pipeline-queue
   test-pipeline-b:
     jobs:
       - sleep:
