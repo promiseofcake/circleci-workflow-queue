@@ -1,22 +1,22 @@
 description: >
-  This command blocks execution of parallel pipeline workflows until necessary criteria is met.
+  This command blocks execution of a workflow within the context of a given pipeline.
 
 parameters:
   debug:
     type: boolean
     default: false
-    description: "If enabled, DEBUG messages will be logged."
+    description: "When enabled, additional debug logging with be output."
   confidence:
     type: string
     default: "1"
     description: >
-      Due to concurrency issues, how many times should we requery the pipeline list to ensure previous jobs are "pending",
+      Due to concurrency issues, the number of times should we requery the pipeline list to ensure previous jobs are "pending",
       but not yet active. This number indicates the threshold for API returning no previous pending pipelines.
-      Default is one confirmation, increase if you see issues.
+      Default is `1` confirmation, increase if you see issues.
 
 steps:
   - run:
-      name: Block additional pipeline work executions until all other workflows are complete
+      name: Blocking execution until the current workflow is the last to run in the given pipeline.
       environment:
         CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
         CONFIG_CONFIDENCE: "<< parameters.confidence >>"
