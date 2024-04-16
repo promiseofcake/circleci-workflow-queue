@@ -36,7 +36,7 @@ parameters:
   include-on-hold:
     type: boolean
     default: false
-    description: Consider `on-hold`` workflows waiting for approval as running and include them in the queue.
+    description: Consider `on-hold` workflows waiting for approval as running and include them in the queue.
 
 steps:
   - global_block:
