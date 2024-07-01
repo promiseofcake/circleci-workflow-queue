@@ -44,5 +44,5 @@ steps:
         CONFIG_ONLY_ON_BRANCH: "<< parameters.only-on-branch >>"
         CONFIG_CONFIDENCE: "<< parameters.confidence >>"
         CONFIG_IGNORED_WORKFLOWS: "<< parameters.ignored-workflows >>"
-        CONFIG_INCLUDE_ON_HOLD: " << parameters.include-on-hold >>"
+        CONFIG_INCLUDE_ON_HOLD: "<< parameters.include-on-hold >>"
       command: <<include(scripts/global-queue.sh)>>
