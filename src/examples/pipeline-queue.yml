@@ -1,0 +1,13 @@
+description: >
+  Use when you want a single workflow to be run at the end of a given pipeline (internal queueing).
+usage:
+  version: 2.1
+  orbs:
+    workflow-queue: promiseofcake/workflow-queue@3
+  workflows:
+    example:
+      jobs:
+        - workflow-queue/pipeline-queue:
+            name: pipeline-queue
+            context: <context-key>
+            only-on-branch: main
