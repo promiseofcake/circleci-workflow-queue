@@ -63,13 +63,15 @@ update_comparables(){
 
 load_variables
 echo "This build will block until all previous builds complete."
-wait_time=0
+wait_start_time=$(date +%s)
 loop_time=11
 
 # queue loop
 confidence=0
 while true; do
     update_comparables
+    now=$(date +%s)
+    wait_time=$(( now - wait_start_time ))
 
     # if we have no running workflows, check confidence, and move to front of line.
     if [[ "${running_workflows}" -eq 0 ]] ; then
@@ -90,5 +92,4 @@ while true; do
     fi
 
     sleep $loop_time
-    wait_time=$(( loop_time + wait_time ))
 done
