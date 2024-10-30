@@ -131,7 +131,7 @@ load_variables
 max_time=${CONFIG_TIME}
 echo "This build will block until all previous builds complete."
 echo "Max Queue Time: ${max_time} minutes."
-wait_time=0
+wait_start_time=$(date +%s)
 loop_time=11
 max_time_seconds=$((max_time * 60))
 
@@ -139,6 +139,8 @@ max_time_seconds=$((max_time * 60))
 confidence=0
 while true; do
     update_comparables
+    now=$(date +%s)
+    wait_time=$((now - wait_start_time))
     echo "This Workflow Timestamp: ${my_commit_time}"
     echo "Oldest Workflow Timestamp: ${oldest_commit_time}"
     if [[ -n "${my_commit_time}" ]] && [[ "${oldest_commit_time}" > "${my_commit_time}" || "${oldest_commit_time}" = "${my_commit_time}" ]] ; then
@@ -173,5 +175,4 @@ while true; do
     fi
 
     sleep $loop_time
-    wait_time=$(( loop_time + wait_time ))
 done
