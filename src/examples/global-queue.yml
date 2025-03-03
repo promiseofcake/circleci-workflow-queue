@@ -3,11 +3,11 @@ description: >
 usage:
   version: 2.1
   orbs:
-    workflow-queue: promiseofcake/workflow-queue@2
+    workflow-queue: promiseofcake/workflow-queue@3
   workflows:
     example:
       jobs:
-        - workflow-queue/queue:
+        - workflow-queue/global-queue:
             name: workflow-queue
             context: <context-key>
             only-on-branch: main
