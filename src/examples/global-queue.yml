@@ -11,3 +11,5 @@ usage:
             name: workflow-queue
             context: <context-key>
             only-on-branch: main
+            # Optionally specify a custom Docker image:
+            # docker-image: cimg/node:18.0
