@@ -14,6 +14,31 @@ Additional use-cases are for queueing workflows within a given pipeline (a featu
 
 In order to use this orb you will need to export a `CIRCLECI_API_TOKEN` secret added to a context of your choosing. It will authentcation against the CircleCI API to check on workflow status. (see: <https://circleci.com/docs/api/v2/index.html#section/Authentication>)
 
+## Custom Executors
+
+Both `global-queue` and `pipeline-queue` jobs now support custom executors. By default, they use a small Docker executor with `cimg/base:stable`, but you can provide your own executor for more control over the execution environment.
+
+### Example: Using a Custom Docker Executor
+
+```yaml
+version: 2.1
+orbs:
+  workflow-queue: promiseofcake/workflow-queue@3
+
+executors:
+  nodejs-executor:
+    docker:
+      - image: cimg/node:18.0
+    resource_class: medium
+
+workflows:
+  deploy:
+    jobs:
+      - workflow-queue/global-queue:
+          context: deployment-context
+          executor: nodejs-executor
+```
+
 ---
 
 ## Resources

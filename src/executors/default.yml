@@ -1,0 +1,5 @@
+description: >
+  Default executor for workflow-queue jobs. Uses a small resource class with the CircleCI base image.
+docker:
+  - image: cimg/base:stable
+resource_class: small

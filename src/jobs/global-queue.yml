@@ -1,15 +1,13 @@
 description: >
   This job ensures only a single defined global workflow is running at a given point in time.
 
-docker:
-  - image: << parameters.docker-image >>
-resource_class: small
+executor: << parameters.executor >>
 
 parameters:
-  docker-image:
-    type: string
-    default: cimg/base:stable
-    description: "Docker image to use for the executor. Defaults to cimg/base:stable."
+  executor:
+    type: executor
+    default: default
+    description: "Executor to use for this job. Can be the default executor or a custom executor defined in your config."
   debug:
     type: boolean
     default: false

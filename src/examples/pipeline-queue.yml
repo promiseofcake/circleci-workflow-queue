@@ -1,9 +1,11 @@
 description: >
   Use when you want a single workflow to be run at the end of a given pipeline (internal queueing).
 usage:
+  # Simple example - uses default cimg/base:stable executor automatically
   version: 2.1
   orbs:
     workflow-queue: promiseofcake/workflow-queue@3
+
   workflows:
     example:
       jobs:
@@ -11,5 +13,26 @@ usage:
             name: pipeline-queue
             context: <context-key>
             only-on-branch: main
-            # Optionally specify a custom Docker image:
-            # docker-image: cimg/node:18.0
+            # No executor specified - automatically uses cimg/base:stable
+
+  ---
+
+  # Advanced example - custom executor
+  version: 2.1
+  orbs:
+    workflow-queue: promiseofcake/workflow-queue@3
+
+  executors:
+    my-custom-executor:
+      docker:
+        - image: cimg/python:3.11
+      resource_class: small
+
+  workflows:
+    example:
+      jobs:
+        - workflow-queue/pipeline-queue:
+            name: pipeline-queue
+            context: <context-key>
+            only-on-branch: main
+            executor: my-custom-executor  # Override default with custom executor
