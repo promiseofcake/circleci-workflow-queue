@@ -21,14 +21,15 @@ workflows:
       - shellcheck/check:
           filters: *filters
       - orb-tools/publish:
-          orb-name: promiseofcake/workflow-queue
-          vcs-type: << pipeline.project.type >>
+          orb_name: promiseofcake/workflow-queue
+          vcs_type: << pipeline.project.type >>
           requires:
             [orb-tools/lint, orb-tools/review, orb-tools/pack, shellcheck/check]
           context: orb-publishing
           filters: *filters
       - orb-tools/continue:
-          pipeline-number: << pipeline.number >>
-          vcs-type: << pipeline.project.type >>
+          orb_name: promiseofcake/workflow-queue
+          pipeline_number: << pipeline.number >>
+          vcs_type: << pipeline.project.type >>
           requires: [orb-tools/publish]
           filters: *filters

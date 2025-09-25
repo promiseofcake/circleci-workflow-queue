@@ -9,10 +9,10 @@ usage:
   workflows:
     example:
       jobs:
-        - workflow-queue/global-queue:
+        - workflow-queue/global_queue:
             name: workflow-queue
             context: <context-key>
-            only-on-branch: main
+            only_on_branch: main
             # No executor specified - automatically uses cimg/base:stable
 
   # Advanced example - custom executors
@@ -29,8 +29,8 @@ usage:
   # workflows:
   #   example:
   #     jobs:
-  #       - workflow-queue/global-queue:
+  #       - workflow-queue/global_queue:
   #           name: workflow-queue
   #           context: <context-key>
-  #           only-on-branch: main
+  #           only_on_branch: main
   #           executor: my-custom-executor  # Override default with custom executor
