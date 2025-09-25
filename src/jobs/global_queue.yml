@@ -1,15 +1,13 @@
 description: >
   This job ensures only a single defined global workflow is running at a given point in time.
 
-docker:
-  - image: << parameters.docker-image >>
-resource_class: small
+executor: << parameters.executor >>
 
 parameters:
-  docker-image:
-    type: string
-    default: cimg/base:stable
-    description: "Docker image to use for the executor. Defaults to cimg/base:stable."
+  executor:
+    type: executor
+    default: default
+    description: "Executor to use for this job. Can be the default executor or a custom executor defined in your config."
   debug:
     type: boolean
     default: false
@@ -18,11 +16,11 @@ parameters:
     type: string
     default: "10"
     description: "Number of minutes to wait for a lock before giving up."
-  dont-quit:
+  dont_quit:
     type: boolean
     default: false
     description: "If true, forces the job through once time expires instead of failing."
-  only-on-branch:
+  only_on_branch:
     type: string
     default: "*"
     description: "Only queue on specified branch"
@@ -33,11 +31,11 @@ parameters:
       Due to concurrency issues, the number of times should we requery the pipeline list to ensure previous jobs are "pending",
       but not yet active. This number indicates the threshold for API returning no previous pending pipelines.
       Default is `1` confirmation, increase if you see issues.
-  ignored-workflows:
+  ignored_workflows:
     type: string
     default: ""
     description: Comma separated list of workflow names to ignore as blocking workflows for the global queue.
-  include-on-hold:
+  include_on_hold:
     type: boolean
     default: false
     description: Consider `on-hold` workflows waiting for approval as running and include them in the queue.
@@ -46,8 +44,8 @@ steps:
   - global_block:
       debug: << parameters.debug >>
       time: << parameters.time >>
-      dont-quit: << parameters.dont-quit >>
-      only-on-branch: << parameters.only-on-branch >>
+      dont_quit: << parameters.dont_quit >>
+      only_on_branch: << parameters.only_on_branch >>
       confidence: << parameters.confidence >>
-      ignored-workflows: << parameters.ignored-workflows >>
-      include-on-hold: << parameters.include-on-hold >>
+      ignored_workflows: << parameters.ignored_workflows >>
+      include_on_hold: << parameters.include_on_hold >>

@@ -1,12 +1,10 @@
 version: 2.1
 orbs:
+  orb-tools: circleci/orb-tools@12.3
   workflow-queue: promiseofcake/workflow-queue@dev:<<pipeline.git.revision>>
-  orb-tools: circleci/orb-tools@11.6
-
 filters: &filters
   tags:
     only: /.*/
-
 jobs:
   sleep:
     docker:
@@ -16,11 +14,10 @@ jobs:
         type: integer
     steps:
       - run: echo "sleeping << parameters.time >>s" &&  sleep << parameters.time >>
-
 workflows:
   test-pipeline-a:
     jobs:
-      - workflow-queue/pipeline-queue:
+      - workflow-queue/pipeline_queue:
           context: orb-publishing
           debug: true
   test-pipeline-b:
@@ -31,13 +28,12 @@ workflows:
     jobs:
       - sleep:
           time: 20
-
-  test-global-queue:
+  test-global_queue:
     jobs:
-      - workflow-queue/global-queue:
+      - workflow-queue/global_queue:
           context: orb-publishing
           debug: true
-          ignored-workflows: "test-pipeline-a" # given we are in one pipeline, don't block on ourselves
+          ignored_workflows: "test-pipeline-a" # given we are in one pipeline, don't block on ourselves
           filters:
             tags:
               ignore: /.*/
@@ -47,9 +43,9 @@ workflows:
           filters: *filters
       - orb-tools/publish:
           context: orb-publishing
-          orb-name: promiseofcake/workflow-queue
-          vcs-type: << pipeline.project.type >>
-          pub-type: production
+          orb_name: promiseofcake/workflow-queue
+          vcs_type: << pipeline.project.type >>
+          pub_type: production
           requires:
             - orb-tools/pack
           filters:

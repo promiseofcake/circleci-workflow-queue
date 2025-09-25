@@ -20,4 +20,4 @@ steps:
       environment:
         CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
         CONFIG_CONFIDENCE: "<< parameters.confidence >>"
-      command: <<include(scripts/pipeline-queue.sh)>>
+      command: <<include(scripts/pipeline_queue.sh)>>

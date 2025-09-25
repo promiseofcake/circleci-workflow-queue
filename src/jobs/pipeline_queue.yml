@@ -1,15 +1,13 @@
 description: >
   This job prevents a workflow within a given pipeline from running until all previous workflows have completed.
 
-docker:
-  - image: << parameters.docker-image >>
-resource_class: small
+executor: << parameters.executor >>
 
 parameters:
-  docker-image:
-    type: string
-    default: cimg/base:stable
-    description: "Docker image to use for the executor. Defaults to cimg/base:stable."
+  executor:
+    type: executor
+    default: default
+    description: "Executor to use for this job. Can be the default executor or a custom executor defined in your config."
   debug:
     type: boolean
     default: false

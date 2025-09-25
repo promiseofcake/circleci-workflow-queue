@@ -10,11 +10,11 @@ parameters:
     type: string
     default: "10"
     description: "Number of minutes to wait for a lock before giving up."
-  dont-quit:
+  dont_quit:
     type: boolean
     default: false
     description: "If true, forces the job through once time expires instead of failing."
-  only-on-branch:
+  only_on_branch:
     type: string
     default: "*"
     description: "Only queue on specified branch"
@@ -25,11 +25,11 @@ parameters:
       Due to concurrency issues, the number of times should we requery the pipeline list to ensure previous jobs are "pending",
       but not yet active. This number indicates the threshold for API returning no previous pending pipelines.
       Default is `1` confirmation, increase if you see issues.
-  ignored-workflows:
+  ignored_workflows:
     type: string
     default: ""
     description: Comma separated list of workflow names to ignore as blocking workflows for the global queue.
-  include-on-hold:
+  include_on_hold:
     type: boolean
     default: false
     description: Consider `on-hold` workflows waiting for approval as running and include them in the queue.
@@ -40,9 +40,9 @@ steps:
       environment:
         CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
         CONFIG_TIME: "<< parameters.time >>"
-        CONFIG_DONT_QUIT: "<< parameters.dont-quit >>"
-        CONFIG_ONLY_ON_BRANCH: "<< parameters.only-on-branch >>"
+        CONFIG_DONT_QUIT: "<< parameters.dont_quit >>"
+        CONFIG_ONLY_ON_BRANCH: "<< parameters.only_on_branch >>"
         CONFIG_CONFIDENCE: "<< parameters.confidence >>"
-        CONFIG_IGNORED_WORKFLOWS: "<< parameters.ignored-workflows >>"
-        CONFIG_INCLUDE_ON_HOLD: "<< parameters.include-on-hold >>"
-      command: <<include(scripts/global-queue.sh)>>
+        CONFIG_IGNORED_WORKFLOWS: "<< parameters.ignored_workflows >>"
+        CONFIG_INCLUDE_ON_HOLD: "<< parameters.include_on_hold >>"
+      command: <<include(scripts/global_queue.sh)>>
