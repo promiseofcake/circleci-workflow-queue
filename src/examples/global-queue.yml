@@ -15,29 +15,22 @@ usage:
             only-on-branch: main
             # No executor specified - automatically uses cimg/base:stable
 
-  ---
-
   # Advanced example - custom executors
-  version: 2.1
-  orbs:
-    workflow-queue: promiseofcake/workflow-queue@3
+  # version: 2.1
+  # orbs:
+  #   workflow-queue: promiseofcake/workflow-queue@3
 
-  executors:
-    my-custom-executor:
-      docker:
-        - image: cimg/node:18.0
-      resource_class: medium
+  # executors:
+  #   my-custom-executor:
+  #     docker:
+  #       - image: cimg/node:18.0
+  #     resource_class: medium
 
-    machine-executor:
-      machine:
-        image: ubuntu-2204:current
-      resource_class: medium
-
-  workflows:
-    example:
-      jobs:
-        - workflow-queue/global-queue:
-            name: workflow-queue
-            context: <context-key>
-            only-on-branch: main
-            executor: my-custom-executor  # Override default with custom executor
+  # workflows:
+  #   example:
+  #     jobs:
+  #       - workflow-queue/global-queue:
+  #           name: workflow-queue
+  #           context: <context-key>
+  #           only-on-branch: main
+  #           executor: my-custom-executor  # Override default with custom executor
