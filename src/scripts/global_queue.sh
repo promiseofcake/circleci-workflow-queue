@@ -116,8 +116,8 @@ update_comparables(){
 
 # will perform a cancel request for the workflow in question
 cancel_current_workflow(){
-    echo "Cancelleing workflow ${my_workflow_id}"
-    fetch "https://circleci.com/api/v2/workflow/${my_workflow_id}" "${tmp}/cancel-workflow-${my_workflow_id}.out" "POST"
+    echo "Cancelling workflow ${my_workflow_id}"
+    fetch "https://circleci.com/api/v2/workflow/${my_workflow_id}/cancel" "${tmp}/cancel-workflow-${my_workflow_id}.out" "POST"
 }
 
 
