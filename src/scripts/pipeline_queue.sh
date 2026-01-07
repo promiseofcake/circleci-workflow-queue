@@ -51,7 +51,7 @@ fetch(){
             sleep $retry_delay
             retry_delay=$((retry_delay * 2))  # exponential backoff
         else
-            echo "ERROR: api-call: server returned error code: ${http_response}"
+            echo "ERROR: API call failed: server returned error code: ${http_response}"
             debug "${target}"
             exit 1
         fi
