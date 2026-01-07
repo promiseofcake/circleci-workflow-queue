@@ -30,20 +30,35 @@ load_variables(){
 }
 
 # helper function to perform HTTP requests via curl
+# includes retry logic with exponential backoff for transient errors
 fetch(){
     url=$1
     target=$2
     method=${3:-GET}
-    debug "Performing API ${method} Call to ${url} to ${target}"
+    max_retries=5
+    retry_delay=5
 
-    http_response=$(curl -s -X "${method}" -H "Circle-Token: ${CIRCLECI_API_TOKEN}" -H "Content-Type: application/json" -o "${target}" -w "%{http_code}" "${url}")
-    if [ "${http_response}" != "200" ]; then
-        echo "ERROR: Server returned error code: ${http_response}"
-        debug "${target}"
-        exit 1
-    else
-        debug "API Success"
-    fi
+    for attempt in $(seq 1 $max_retries); do
+        debug "api call: ${method} ${url} > ${target} (attempt ${attempt}/${max_retries})"
+
+        http_response=$(curl -s -X "${method}" -H "Circle-Token: ${CIRCLECI_API_TOKEN}" -H "Content-Type: application/json" -o "${target}" -w "%{http_code}" "${url}")
+
+        if [ "${http_response}" = "200" ]; then
+            debug "api call: success"
+            return 0
+        elif [[ "${http_response}" =~ ^(429|502|503|504)$ ]]; then
+            echo "WARNING: Transient error ${http_response}, retrying in ${retry_delay}s (attempt ${attempt}/${max_retries})..."
+            sleep $retry_delay
+            retry_delay=$((retry_delay * 2))  # exponential backoff
+        else
+            echo "ERROR: api-call: server returned error code: ${http_response}"
+            debug "${target}"
+            exit 1
+        fi
+    done
+
+    echo "ERROR: Max retries exceeded for API call to ${url}"
+    exit 1
 }
 
 # fetch all workflows within the current pipeline
