@@ -1,4 +1,7 @@
 #!/bin/bash
+set -e
+set -o pipefail
+
 tmp=${TMP_DIR:-/tmp}
 workflows_file="${tmp}/workflow_status.json"
 
