@@ -37,6 +37,7 @@ parameters:
 steps:
   - run:
       name: Block execution until the current workflow is at the front of the line
+      shell: /bin/bash -eo pipefail
       environment:
         CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
         CONFIG_TIME: "<< parameters.time >>"

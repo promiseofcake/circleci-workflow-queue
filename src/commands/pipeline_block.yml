@@ -17,6 +17,7 @@ parameters:
 steps:
   - run:
       name: Blocking execution until the current workflow is the last to run in the given pipeline.
+      shell: /bin/bash -eo pipefail
       environment:
         CONFIG_DEBUG_ENABLED: "<< parameters.debug >>"
         CONFIG_CONFIDENCE: "<< parameters.confidence >>"
