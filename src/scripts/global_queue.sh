@@ -69,19 +69,22 @@ fetch_pipelines(){
     echo "Only blocking execution if running previous workflows on branch: ${CIRCLE_BRANCH}"
     pipelines_api_url_template="https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline?branch=${CIRCLE_BRANCH}"
 
-    debug "Fetching piplines for: ${CIRCLE_BRANCH}"
+    debug "Fetching pipelines for: ${CIRCLE_BRANCH}"
     fetch "${pipelines_api_url_template}" "${pipelines_file}"
 }
 
 # iterate over all pipelines, and fetch workflow information
 fetch_pipeline_workflows(){
+    # clean up stale pipeline files from previous iterations
+    rm -f "${tmp}"/pipeline-*.json
+
     for pipeline in $(jq -r ".items[] | .id //empty" "${pipelines_file}" | uniq)
     do
         debug "Fetching workflow metadata for pipeline: ${pipeline}"
         pipeline_detail=${tmp}/pipeline-${pipeline}.json
         fetch "https://circleci.com/api/v2/pipeline/${pipeline}/workflow" "${pipeline_detail}"
         created_at=$(jq -r '.items[] | .created_at' "${pipeline_detail}")
-        debug "Pipeline:'s workflow was created at: ${created_at}"
+        debug "Pipeline's workflow was created at: ${created_at}"
     done
 
     # filter out any workflows that are not active
