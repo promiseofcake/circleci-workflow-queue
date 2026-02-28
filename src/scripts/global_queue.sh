@@ -45,8 +45,8 @@ fetch(){
 
         http_response=$(curl -s -X "${method}" -H "Circle-Token: ${CIRCLECI_API_TOKEN}" -H "Content-Type: application/json" -o "${target}" -w "%{http_code}" "${url}")
 
-        if [ "${http_response}" = "200" ]; then
-            debug "api call: success"
+        if [[ "${http_response}" =~ ^2[0-9][0-9]$ ]]; then
+            debug "api call: success (${http_response})"
             return 0
         elif [[ "${http_response}" =~ ^(429|502|503|504)$ ]]; then
             echo "WARNING: Transient error ${http_response}, retrying in ${retry_delay}s (attempt ${attempt}/${max_retries})..."
