@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091,SC2317,SC2329,SC2034,SC2154
+# SC1091: helpers.sh is sourced at runtime
+# SC2317: Functions defined inside tests are invoked indirectly via export -f / eval
+# SC2034: Variables set here are used by sourced script functions
+# SC2154: Variables are assigned by eval'd/sourced script code
 set -euo pipefail
 
 TEST_SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)

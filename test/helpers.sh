@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2034
+# SC2034: Variables defined here are used by test scripts that source this file
 # Test helpers for circleci-workflow-queue scripts
 set -euo pipefail
 
