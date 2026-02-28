@@ -109,8 +109,8 @@ fetch_pipeline_workflows(){
 
 # parse workflows to fetch parmeters about this current running workflow
 load_current_workflow_values(){
-    my_commit_time=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" "${workflows_file}")
-    my_workflow_id=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" "${workflows_file}")
+    my_commit_time=$(jq -r ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" "${workflows_file}")
+    my_workflow_id=$(jq -r ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" "${workflows_file}")
 }
 
 # load all the data necessary to compare build executions
@@ -122,9 +122,9 @@ update_comparables(){
     load_current_workflow_values
 
     echo "This job will block until no previous workflows have *any* workflows running."
-    oldest_running_workflow_id=$(jq '. | sort_by(.created_at) | .[0].id' "${workflows_file}")
-    oldest_commit_time=$(jq '. | sort_by(.created_at) | .[0].created_at' "${workflows_file}")
-    if [ -z "${oldest_commit_time}" ] || [ -z "${oldest_running_workflow_id}" ]; then
+    oldest_running_workflow_id=$(jq -r '. | sort_by(.created_at) | .[0].id' "${workflows_file}")
+    oldest_commit_time=$(jq -r '. | sort_by(.created_at) | .[0].created_at' "${workflows_file}")
+    if [ -z "${oldest_commit_time}" ] || [ "${oldest_commit_time}" = "null" ] || [ -z "${oldest_running_workflow_id}" ] || [ "${oldest_running_workflow_id}" = "null" ]; then
         echo "ERROR: API Error - unable to load previous workflow timings. File a bug"
         exit 1
     fi
@@ -164,7 +164,7 @@ while true; do
     wait_time=$((now - wait_start_time))
     echo "This Workflow Timestamp: ${my_commit_time}"
     echo "Oldest Workflow Timestamp: ${oldest_commit_time}"
-    if [[ -n "${my_commit_time}" ]] && [[ "${oldest_commit_time}" > "${my_commit_time}" || "${oldest_commit_time}" = "${my_commit_time}" ]] ; then
+    if [[ -n "${my_commit_time}" ]] && [[ "${my_commit_time}" != "null" ]] && [[ "${oldest_commit_time}" > "${my_commit_time}" || "${oldest_commit_time}" = "${my_commit_time}" ]] ; then
     # API returns Y-M-D HH:MM (with 24 hour clock) so alphabetical string compare is accurate to timestamp compare as well
     # Workflow API does not include pending, so it is posisble we queried in between a workfow transition, and we;re NOT really front of line.
     if [ $confidence -lt "${CONFIG_CONFIDENCE}" ];then
