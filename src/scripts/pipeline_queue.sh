@@ -83,6 +83,13 @@ load_variables
 echo "This build will block until all previous builds complete."
 wait_start_time=$(date +%s)
 loop_time=11
+max_time=${CONFIG_TIME:-0}
+max_time_seconds=$((max_time * 60))
+if [ "$max_time" -gt 0 ]; then
+    echo "Max Queue Time: ${max_time} minutes."
+else
+    echo "No timeout configured, will wait indefinitely."
+fi
 
 # queue loop
 confidence=0
@@ -107,6 +114,17 @@ while true; do
         confidence=0
         echo "This workflow (${CIRCLE_WORKFLOW_ID}) is queued, waiting for ${running_workflows} pipeline workflows to complete."
         echo "Total Queue time: ${wait_time} seconds."
+    fi
+
+    if [ "$max_time_seconds" -gt 0 ] && [ $wait_time -ge $max_time_seconds ]; then
+        echo "Max wait time exceeded, considering response."
+        if [ "${CONFIG_DONT_QUIT}" == "1" ]; then
+            echo "Orb parameter dont-quit is set to true, letting this job proceed!"
+            exit 0
+        else
+            echo "Max wait time exceeded. Failing job."
+            exit 1
+        fi
     fi
 
     sleep $loop_time
