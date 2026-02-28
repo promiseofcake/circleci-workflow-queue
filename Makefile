@@ -1,5 +1,9 @@
+.PHONY: test test-global-queue test-pipeline-queue
+
+test: test-global-queue test-pipeline-queue
+
 test-global-queue:
-	./src/scripts/test.sh global-queue.sh
+	bash test/test_global_queue.sh
 
 test-pipeline-queue:
-	./src/scripts/test.sh pipeline-queue.sh
+	bash test/test_pipeline_queue.sh
