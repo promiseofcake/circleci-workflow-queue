@@ -32,11 +32,13 @@ load_variables(){
 # helper function to perform HTTP requests via curl
 # includes retry logic with exponential backoff for transient errors
 fetch(){
-    url=$1
-    target=$2
-    method=${3:-GET}
-    max_retries=5
-    retry_delay=5
+    local url=$1
+    local target=$2
+    local method=${3:-GET}
+    local max_retries=5
+    local retry_delay=5
+    local attempt
+    local http_response
 
     for attempt in $(seq 1 $max_retries); do
         debug "api call: ${method} ${url} > ${target} (attempt ${attempt}/${max_retries})"
