@@ -62,6 +62,9 @@ test_fetch_retries_on_transient_errors() {
     local call_count
     call_count=$(cat "${TMP_DIR}/call_count")
     assert_equals "fetch retried until success" "3" "${call_count}"
+
+    # restore real sleep to avoid leaking no-op into subsequent tests
+    unset -f sleep
 }
 
 test_fetch_fails_on_non_transient_error() {
