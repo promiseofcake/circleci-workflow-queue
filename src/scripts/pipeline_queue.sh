@@ -32,19 +32,21 @@ load_variables(){
 # helper function to perform HTTP requests via curl
 # includes retry logic with exponential backoff for transient errors
 fetch(){
-    url=$1
-    target=$2
-    method=${3:-GET}
-    max_retries=5
-    retry_delay=5
+    local url=$1
+    local target=$2
+    local method=${3:-GET}
+    local max_retries=5
+    local retry_delay=5
+    local attempt
+    local http_response
 
     for attempt in $(seq 1 $max_retries); do
         debug "api call: ${method} ${url} > ${target} (attempt ${attempt}/${max_retries})"
 
         http_response=$(curl -s -X "${method}" -H "Circle-Token: ${CIRCLECI_API_TOKEN}" -H "Content-Type: application/json" -o "${target}" -w "%{http_code}" "${url}")
 
-        if [ "${http_response}" = "200" ]; then
-            debug "api call: success"
+        if [[ "${http_response}" =~ ^2[0-9][0-9]$ ]]; then
+            debug "api call: success (${http_response})"
             return 0
         elif [[ "${http_response}" =~ ^(429|502|503|504)$ ]]; then
             echo "WARNING: Transient error ${http_response}, retrying in ${retry_delay}s (attempt ${attempt}/${max_retries})..."
@@ -83,6 +85,13 @@ load_variables
 echo "This build will block until all previous builds complete."
 wait_start_time=$(date +%s)
 loop_time=11
+max_time=${CONFIG_TIME:-0}
+max_time_seconds=$((max_time * 60))
+if [ "$max_time" -gt 0 ]; then
+    echo "Max Queue Time: ${max_time} minutes."
+else
+    echo "No timeout configured, will wait indefinitely."
+fi
 
 # queue loop
 confidence=0
@@ -107,6 +116,17 @@ while true; do
         confidence=0
         echo "This workflow (${CIRCLE_WORKFLOW_ID}) is queued, waiting for ${running_workflows} pipeline workflows to complete."
         echo "Total Queue time: ${wait_time} seconds."
+    fi
+
+    if [ "$max_time_seconds" -gt 0 ] && [ $wait_time -ge $max_time_seconds ]; then
+        echo "Max wait time exceeded, considering response."
+        if [ "${CONFIG_DONT_QUIT}" == "1" ]; then
+            echo "Orb parameter dont-quit is set to true, letting this job proceed!"
+            exit 0
+        else
+            echo "Max wait time exceeded. Failing job."
+            exit 1
+        fi
     fi
 
     sleep $loop_time

@@ -34,19 +34,21 @@ load_variables(){
 # helper function to perform HTTP requests via curl
 # includes retry logic with exponential backoff for transient errors
 fetch(){
-    url=$1
-    target=$2
-    method=${3:-GET}
-    max_retries=5
-    retry_delay=5
+    local url=$1
+    local target=$2
+    local method=${3:-GET}
+    local max_retries=5
+    local retry_delay=5
+    local attempt
+    local http_response
 
     for attempt in $(seq 1 $max_retries); do
         debug "api call: ${method} ${url} > ${target} (attempt ${attempt}/${max_retries})"
 
         http_response=$(curl -s -X "${method}" -H "Circle-Token: ${CIRCLECI_API_TOKEN}" -H "Content-Type: application/json" -o "${target}" -w "%{http_code}" "${url}")
 
-        if [ "${http_response}" = "200" ]; then
-            debug "api call: success"
+        if [[ "${http_response}" =~ ^2[0-9][0-9]$ ]]; then
+            debug "api call: success (${http_response})"
             return 0
         elif [[ "${http_response}" =~ ^(429|502|503|504)$ ]]; then
             echo "WARNING: Transient error ${http_response}, retrying in ${retry_delay}s (attempt ${attempt}/${max_retries})..."
@@ -67,21 +69,25 @@ fetch(){
 fetch_pipelines(){
     : "${CIRCLE_BRANCH:?"Required Env Variable not found!"}"
     echo "Only blocking execution if running previous workflows on branch: ${CIRCLE_BRANCH}"
-    pipelines_api_url_template="https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline?branch=${CIRCLE_BRANCH}"
+    encoded_branch=$(printf '%s' "${CIRCLE_BRANCH}" | jq -sRr @uri)
+    pipelines_api_url_template="https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline?branch=${encoded_branch}"
 
-    debug "Fetching piplines for: ${CIRCLE_BRANCH}"
+    debug "Fetching pipelines for: ${CIRCLE_BRANCH}"
     fetch "${pipelines_api_url_template}" "${pipelines_file}"
 }
 
 # iterate over all pipelines, and fetch workflow information
 fetch_pipeline_workflows(){
+    # clean up stale pipeline files from previous iterations
+    rm -f "${tmp}"/pipeline-*.json
+
     for pipeline in $(jq -r ".items[] | .id //empty" "${pipelines_file}" | uniq)
     do
         debug "Fetching workflow metadata for pipeline: ${pipeline}"
         pipeline_detail=${tmp}/pipeline-${pipeline}.json
         fetch "https://circleci.com/api/v2/pipeline/${pipeline}/workflow" "${pipeline_detail}"
         created_at=$(jq -r '.items[] | .created_at' "${pipeline_detail}")
-        debug "Pipeline:'s workflow was created at: ${created_at}"
+        debug "Pipeline's workflow was created at: ${created_at}"
     done
 
     # filter out any workflows that are not active
@@ -106,8 +112,8 @@ fetch_pipeline_workflows(){
 
 # parse workflows to fetch parmeters about this current running workflow
 load_current_workflow_values(){
-    my_commit_time=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" "${workflows_file}")
-    my_workflow_id=$(jq ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" "${workflows_file}")
+    my_commit_time=$(jq -r ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" "${workflows_file}")
+    my_workflow_id=$(jq -r ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" "${workflows_file}")
 }
 
 # load all the data necessary to compare build executions
@@ -119,9 +125,9 @@ update_comparables(){
     load_current_workflow_values
 
     echo "This job will block until no previous workflows have *any* workflows running."
-    oldest_running_workflow_id=$(jq '. | sort_by(.created_at) | .[0].id' "${workflows_file}")
-    oldest_commit_time=$(jq '. | sort_by(.created_at) | .[0].created_at' "${workflows_file}")
-    if [ -z "${oldest_commit_time}" ] || [ -z "${oldest_running_workflow_id}" ]; then
+    oldest_running_workflow_id=$(jq -r '. | sort_by(.created_at, .id) | .[0].id' "${workflows_file}")
+    oldest_commit_time=$(jq -r '. | sort_by(.created_at, .id) | .[0].created_at' "${workflows_file}")
+    if [ -z "${oldest_commit_time}" ] || [ "${oldest_commit_time}" = "null" ] || [ -z "${oldest_running_workflow_id}" ] || [ "${oldest_running_workflow_id}" = "null" ]; then
         echo "ERROR: API Error - unable to load previous workflow timings. File a bug"
         exit 1
     fi
@@ -161,7 +167,7 @@ while true; do
     wait_time=$((now - wait_start_time))
     echo "This Workflow Timestamp: ${my_commit_time}"
     echo "Oldest Workflow Timestamp: ${oldest_commit_time}"
-    if [[ -n "${my_commit_time}" ]] && [[ "${oldest_commit_time}" > "${my_commit_time}" || "${oldest_commit_time}" = "${my_commit_time}" ]] ; then
+    if [[ -n "${my_commit_time}" ]] && [[ "${my_commit_time}" != "null" ]] && [[ "${oldest_commit_time}" > "${my_commit_time}" || ( "${oldest_commit_time}" = "${my_commit_time}" && "${oldest_running_workflow_id}" = "${my_workflow_id}" ) ]] ; then
     # API returns Y-M-D HH:MM (with 24 hour clock) so alphabetical string compare is accurate to timestamp compare as well
     # Workflow API does not include pending, so it is posisble we queried in between a workfow transition, and we;re NOT really front of line.
     if [ $confidence -lt "${CONFIG_CONFIDENCE}" ];then
