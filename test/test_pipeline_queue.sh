@@ -59,7 +59,6 @@ FIXTURE
     export -f mock_curl_response
 
     workflows_file="${TMP_DIR}/workflow_status.json"
-    fetch_pipeline_workflows > /dev/null 2>&1
     update_comparables > /dev/null 2>&1
 
     assert_equals "no running workflows besides self" "0" "${running_workflows}"
@@ -110,7 +109,6 @@ FIXTURE
     export -f mock_curl_response
 
     workflows_file="${TMP_DIR}/workflow_status.json"
-    fetch_pipeline_workflows > /dev/null 2>&1
     update_comparables > /dev/null 2>&1
 
     assert_equals "counts running+created workflows (excluding self)" "2" "${running_workflows}"

@@ -27,8 +27,9 @@ test_fetch_accepts_2xx() {
     }
     export -f mock_curl_response
 
-    fetch "https://example.com/cancel" "${TMP_DIR}/cancel.json" "POST"
-    assert_equals "fetch returns success for 202" "0" "$?"
+    local exit_code=0
+    (fetch "https://example.com/cancel" "${TMP_DIR}/cancel.json" "POST") 2>/dev/null || exit_code=$?
+    assert_equals "fetch returns success for 202" "0" "${exit_code}"
 }
 
 test_fetch_retries_on_transient_errors() {
