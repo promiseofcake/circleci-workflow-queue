@@ -12,7 +12,6 @@ usage:
         - workflow-queue/pipeline_queue:
             name: pipeline_queue
             context: <context-key>
-            only_on_branch: main
             # No executor specified - automatically uses cimg/base:stable
 
   # # Advanced example - custom executor
@@ -32,5 +31,4 @@ usage:
   #       - workflow-queue/pipeline_queue:
   #           name: pipeline_queue
   #           context: <context-key>
-  #           only_on_branch: main
   #           executor: my-custom-executor  # Override default with custom executor
