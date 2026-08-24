@@ -1,5 +1,8 @@
 description: >
   This job prevents a workflow within a given pipeline from running until all previous workflows have completed.
+  NOTE: apply this to exactly one workflow per pipeline. If two workflows in the same pipeline both queue,
+  each waits for the other and they deadlock until `time` expires (or indefinitely, since the default
+  `time` is 0). There is no ordering/tiebreaker here — for cross-pipeline ordering use `global_queue`.
 
 executor: << parameters.executor >>
 

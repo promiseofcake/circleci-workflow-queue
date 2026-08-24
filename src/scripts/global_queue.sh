@@ -110,7 +110,7 @@ fetch_pipeline_workflows(){
     jq -s "[.[].items[] | select(([.name] | inside(${ignored_workflows}) | not) and ([.status] | inside(${active_statuses})))]" "${tmp}"/pipeline-*.json > "${workflows_file}"
 }
 
-# parse workflows to fetch parmeters about this current running workflow
+# parse workflows to fetch parameters about this current running workflow
 load_current_workflow_values(){
     my_commit_time=$(jq -r ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").created_at" "${workflows_file}")
     my_workflow_id=$(jq -r ".[] | select (.id == \"${CIRCLE_WORKFLOW_ID}\").id" "${workflows_file}")
@@ -169,7 +169,7 @@ while true; do
     echo "Oldest Workflow Timestamp: ${oldest_commit_time}"
     if [[ -n "${my_commit_time}" ]] && [[ "${my_commit_time}" != "null" ]] && [[ "${oldest_commit_time}" > "${my_commit_time}" || ( "${oldest_commit_time}" = "${my_commit_time}" && "${oldest_running_workflow_id}" = "${my_workflow_id}" ) ]] ; then
     # API returns Y-M-D HH:MM (with 24 hour clock) so alphabetical string compare is accurate to timestamp compare as well
-    # Workflow API does not include pending, so it is posisble we queried in between a workfow transition, and we;re NOT really front of line.
+    # Workflow API does not include pending, so it is possible we queried in between a workflow transition, and we're NOT really front of line.
     if [ $confidence -lt "${CONFIG_CONFIDENCE}" ];then
         # To grow confidence, we check again with a delay.
         confidence=$((confidence+1))
