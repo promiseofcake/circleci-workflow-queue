@@ -23,6 +23,9 @@ workflows:
       - orb-tools/publish:
           orb_name: promiseofcake/workflow-queue
           vcs_type: << pipeline.project.type >>
+          # PR-comment step is disabled: it requires a GITHUB_TOKEN in the
+          # orb-publishing context, which we intentionally do not configure.
+          enable_pr_comment: false
           requires:
             [orb-tools/lint, orb-tools/review, orb-tools/pack, shellcheck/check]
           context: orb-publishing
